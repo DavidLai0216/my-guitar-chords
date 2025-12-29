@@ -1,0 +1,87 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<style>
+    body{font-family:sans-serif;background:#f4f1ea;text-align:center;padding:10px;margin:0;height:100vh;overflow:hidden;display:flex;flex-direction:column}
+    #overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(93,64,55,0.95);color:white;display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:100;cursor:pointer}
+    .scroll-area{flex:1;overflow-y:auto;padding:10px;margin-bottom:10px;border-bottom:1px solid #ddd}
+    .g{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+    button{padding:12px 2px;background:#8d6e63;color:white;border:none;border-radius:6px;font-weight:bold;font-size:13px}
+    button:active{background:#d84315}
+    .box{background:white;padding:15px;border-radius:15px;box-shadow:0 4px-10px rgba(0,0,0,0.1);display:inline-block;margin:0 auto 10px auto;width:220px}
+    h2{margin:0;color:#5d4037;font-size:30px}svg{width:180px;height:210px}
+    h4{margin:5px 0;color:#795548}
+</style></head><body>
+
+    <div id="overlay" onclick="startApp()">
+        <h1>🎸 30 個實用和弦庫</h1>
+        <p style="font-size:18px;">點擊螢幕開始</p>
+        <p style="font-size:13px;">(請檢查 iPad 靜音開關是否關閉)</p>
+    </div>
+
+    <h4>請點選和弦：</h4>
+    <div class="scroll-area">
+        <div class="g" id="btns"></div>
+    </div>
+
+    <div class="box"><h2 id="n">C</h2><svg id="v" viewBox="0 0 200 240"></svg></div>
+
+<script>
+    // 和弦資料庫 [高E, B, G, D, A, 低E]
+    const chords = {
+        "C":[0,1,0,2,3,null],"D":[2,3,2,0,null,null],"E":[0,0,1,2,2,0],"F":[1,1,2,3,3,1],"G":[3,0,0,0,2,3],"A":[0,2,2,2,0,null],"B":[2,4,4,4,2,null],
+        "Cm":[3,4,5,5,3,null],"Dm":[1,3,2,0,null,null],"Em":[0,0,0,2,2,0],"Fm":[1,1,1,3,3,1],"Gm":[3,3,3,5,5,3],"Am":[0,1,2,2,0,null],"Bm":[2,3,4,4,2,null],
+        "C7":[0,1,3,2,3,null],"D7":[2,1,2,0,null,null],"E7":[0,0,1,0,2,0],"F7":[1,1,2,1,3,1],"G7":[1,0,0,0,2,3],"A7":[0,2,0,2,0,null],"B7":[2,0,2,1,2,null],
+        "Cmaj7":[0,0,0,2,3,null],"Dmaj7":[2,2,2,0,null,null],"Fmaj7":[0,1,2,3,null,null],"Gmaj7":[2,0,0,0,2,3],"Amaj7":[0,2,1,2,0,null],
+        "Csus4":[1,1,0,3,3,null],"Dsus4":[3,3,2,0,null,null],"Gsus4":[3,1,0,0,2,3],"Asus4":[0,3,2,2,0,null]
+    };
+    const freqs = [329.6, 246.9, 196.0, 146.8, 110.0, 82.4];
+    let ctx = null;
+
+    function startApp() {
+        ctx = new (window.AudioContext || window.webkitAudioContext)();
+        if(ctx.state === 'suspended') ctx.resume();
+        document.getElementById('overlay').style.display = 'none';
+    }
+
+    function play(k) {
+        if(!ctx) return;
+        ctx.resume();
+        const now = ctx.currentTime;
+        chords[k].forEach((v, i) => {
+            if(v !== null) {
+                const o = ctx.createOscillator();
+                const g = ctx.createGain();
+                o.type = 'triangle';
+                o.frequency.setValueAtTime(freqs[i] * Math.pow(2, v/12), now + i*0.06);
+                g.gain.setValueAtTime(0.3, now + i*0.06);
+                g.gain.exponentialRampToValueAtTime(0.01, now + i*0.06 + 1.2);
+                o.connect(g); g.connect(ctx.destination);
+                o.start(now + i*0.06); o.stop(now + i*0.06 + 1.5);
+            }
+        });
+    }
+
+    function draw(k) {
+        document.getElementById('n').innerText = k;
+        const s = chords[k];
+        let h = '<rect x="40" y="40" width="120" height="160" fill="none" stroke="#333" stroke-width="2"/>';
+        for(let i=0; i<6; i++) {
+            let x = 160 - i*24;
+            h += `<line x1="${x}" y1="40" x2="${x}" y2="200" stroke="#333"/>`;
+            if(s[i] === null) h += `<text x="${x}" y="30" text-anchor="middle" font-size="12">×</text>`;
+            else if(s[i] === 0) h += `<text x="${x}" y="30" text-anchor="middle" font-size="12">○</text>`;
+            else h += `<circle cx="${x}" cy="${40 + s[i]*40 - 20}" r="7" fill="#d84315"/>`;
+        }
+        for(let j=0; j<=4; j++) h += `<line x1="40" y1="${40+j*40}" x2="160" y2="${40+j*40}" stroke="#ccc"/>`;
+        h += '<rect x="38" y="35" width="124" height="6" fill="#333"/>';
+        document.getElementById('v').innerHTML = h;
+    }
+
+    Object.keys(chords).forEach(k => {
+        const b = document.createElement('button');
+        b.innerText = k;
+        b.onclick = () => { play(k); draw(k); };
+        document.getElementById('btns').appendChild(b);
+    });
+    draw("C");
+</script></body></html>
