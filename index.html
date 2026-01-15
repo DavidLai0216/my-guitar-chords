@@ -3,186 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎸 專業級吉他和弦庫</title>
+    <title>🎸 專業級矩陣和弦字典</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <style>
         :root { --primary: #2c3e50; --accent: #e67e22; --success: #27ae60; --bg: #f8f9fa; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background-color: var(--bg); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        body { font-family: -apple-system, sans-serif; background-color: var(--bg); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
         .controls { margin-bottom: 25px; text-align: center; }
-        #soundToggle { padding: 12px 24px; font-size: 1rem; font-weight: bold; border: none; border-radius: 50px; cursor: pointer; transition: 0.3s; background-color: #ddd; color: #333; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        #soundToggle { padding: 12px 24px; font-size: 1rem; font-weight: bold; border: none; border-radius: 50px; cursor: pointer; transition: 0.3s; background-color: #ddd; }
         #soundToggle.active { background-color: var(--success); color: white; }
-        .main-container { display: flex; gap: 30px; max-width: 1100px; width: 100%; flex-wrap: wrap; justify-content: center; }
-        .chord-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); flex: 1; min-width: 320px; min-height: 300px; }
-        .chord-btn { padding: 12px 5px; border: 1px solid #eee; background: #fff; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; font-size: 0.9rem; }
-        .chord-btn:hover { background: #f9f9f9; border-color: var(--accent); }
+        
+        .main-container { display: flex; gap: 20px; max-width: 1200px; width: 100%; flex-wrap: wrap; justify-content: center; }
+        
+        /* 矩陣網格系統 */
+        .chord-section { flex: 1; min-width: 600px; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .grid-header { display: grid; grid-template-columns: 40px repeat(6, 1fr); gap: 8px; margin-bottom: 10px; text-align: center; font-weight: bold; color: #888; font-size: 0.8rem; }
+        .chord-row { display: grid; grid-template-columns: 40px repeat(6, 1fr); gap: 8px; margin-bottom: 8px; align-items: center; }
+        .row-label { font-weight: bold; color: var(--primary); text-align: center; }
+        
+        .chord-btn { padding: 10px 2px; border: 1px solid #eee; background: #fff; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; font-size: 0.85rem; }
+        .chord-btn:hover { border-color: var(--accent); background: #fffcf9; }
         .chord-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
-        .display-card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; width: 320px; position: sticky; top: 20px; height: fit-content; }
-        .status-bar { display: flex; justify-content: space-between; width: 200px; margin: 0 auto 5px auto; font-weight: bold; font-size: 1.4rem; height: 30px; }
-        .status-item { width: 20px; text-align: center; line-height: 30px; }
+
+        /* 右側展示卡 */
+        .display-card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; width: 300px; position: sticky; top: 20px; height: fit-content; }
+        .status-bar { display: flex; justify-content: space-between; width: 180px; margin: 0 auto 5px auto; font-size: 1.4rem; height: 30px; }
+        .status-item { width: 20px; text-align: center; }
         .status-x { color: #e74c3c; }
         .status-o { color: var(--success); }
-        .fretboard { width: 200px; height: 240px; margin: 0 auto; position: relative; border: 2px solid #444; background: #fff; }
+        .fretboard { width: 180px; height: 220px; margin: 0 auto; position: relative; border: 2px solid #444; background: #fff; }
         .string { position: absolute; width: 2px; background: #bbb; height: 100%; }
         .fret { position: absolute; height: 2px; background: #444; width: 100%; }
         .s1{left:100%} .s2{left:80%} .s3{left:60%} .s4{left:40%} .s5{left:20%} .s6{left:0%}
         .f1{top:20%} .f2{top:40%} .f3{top:60%} .f4{top:80%}
-        .finger { position: absolute; width: 24px; height: 24px; background: #e74c3c; border-radius: 50%; transform: translate(-50%, -50%); z-index: 10; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-        #loadingMsg { font-size: 0.8rem; color: #999; margin-top: 8px; font-weight: normal; }
-        @media (max-width: 768px) { .chord-grid { grid-template-columns: repeat(4, 1fr); } .main-container { flex-direction: column-reverse; } }
-    </style>
-</head>
-<body>
-
-    <h1>🎸 專業級吉他和弦庫</h1>
-    
-    <div class="controls">
-        <button id="soundToggle" onclick="toggleSound()">🔇 聲音：已關閉</button>
-        <p id="loadingMsg">正在啟動音效引擎...</p>
-    </div>
-
-    <div class="main-container">
-        <div class="chord-grid" id="chordGrid"></div>
-
-        <div class="display-card">
-            <div class="status-bar" id="statusBar">
-                <div class="status-item"></div><div class="status-item"></div><div class="status-item"></div>
-                <div class="status-item"></div><div class="status-item"></div><div class="status-item"></div>
-            </div>
-            <div class="fretboard" id="fretboard">
-                <div class="string s1"></div><div class="string s2"></div><div class="string s3"></div>
-                <div class="string s4"></div><div class="string s5"></div><div class="string s6"></div>
-                <div class="fret f1"></div><div class="fret f2"></div><div class="fret f3"></div><div class="fret f4"></div>
-            </div>
-            <h2 id="currentName" style="color: var(--accent); margin-top: 15px; margin-bottom: 5px;">請選擇和弦</h2>
-            <p style="font-size: 0.9rem; color: #666; margin: 0;">組成音：<span id="chordNotes">-</span></p>
-        </div>
-    </div>
-
-    <script>
-        // 1. 和弦資料定義
-        const chords = {
-            "C": { fingers: [{s:5, f:3}, {s:4, f:2}, {s:2, f:1}], status: ["x","o","o","o","o","o"], notes: "C, E, G", freq: ["C3", "E3", "G3", "C4", "E4"] },
-            "G": { fingers: [{s:6, f:3}, {s:5, f:2}, {s:1, f:3}], status: ["o","o","o","o","o","o"], notes: "G, B, D", freq: ["G2", "B2", "D3", "G3", "B3", "G4"] },
-            "D": { fingers: [{s:3, f:2}, {s:2, f:3}, {s:1, f:2}], status: ["x","x","o","o","o","o"], notes: "D, F#, A", freq: ["D3", "A3", "D4", "F#4"] },
-            "A": { fingers: [{s:4, f:2}, {s:3, f:2}, {s:2, f:2}], status: ["x","o","o","o","o","o"], notes: "A, C#, E", freq: ["A2", "E3", "A3", "C#4", "E4"] },
-            "E": { fingers: [{s:5, f:2}, {s:4, f:2}, {s:3, f:1}], status: ["o","o","o","o","o","o"], notes: "E, G#, B", freq: ["E2", "B2", "E3", "G#3", "B3", "E4"] },
-            "Am": { fingers: [{s:4, f:2}, {s:3, f:2}, {s:2, f:1}], status: ["x","o","o","o","o","o"], notes: "A, C, E", freq: ["A2", "E3", "A3", "C4", "E4"] },
-            "Em": { fingers: [{s:5, f:2}, {s:4, f:2}], status: ["o","o","o","o","o","o"], notes: "E, G, B", freq: ["E2", "B2", "E3", "G3", "B3", "E4"] },
-            "Dm": { fingers: [{s:3, f:2}, {s:2, f:3}, {s:1, f:1}], status: ["x","x","o","o","o","o"], notes: "D, F, A", freq: ["D3", "A3", "D4", "F4"] },
-            "F": { fingers: [{s:6, f:1}, {s:5, f:3}, {s:4, f:3}, {s:3, f:2}, {s:2, f:1}, {s:1, f:1}], status: ["o","o","o","o","o","o"], notes: "F, A, C", freq: ["F2", "C3", "F3", "A3", "C4", "F4"] },
-            "Bm": { fingers: [{s:5, f:2}, {s:4, f:4}, {s:3, f:4}, {s:2, f:3}, {s:1, f:2}], status: ["x","o","o","o","o","o"], notes: "B, D, F#", freq: ["B2", "F#3", "B3", "D4", "F#4"] },
-            "C7": { fingers: [{s:5, f:3}, {s:4, f:2}, {s:3, f:3}, {s:2, f:1}], status: ["x","o","o","o","o","o"], notes: "C, E, G, Bb", freq: ["C3", "E3", "Bb3", "C4", "E4"] },
-            "G7": { fingers: [{s:6, f:3}, {s:5, f:2}, {s:1, f:1}], status: ["o","o","o","o","o","o"], notes: "G, B, D, F", freq: ["G2", "B2", "D3", "G3", "B3", "F4"] },
-            "D7": { fingers: [{s:3, f:2}, {s:2, f:1}, {s:1, f:2}], status: ["x","x","o","o","o","o"], notes: "D, F#, A, C", freq: ["D3", "A3", "C4", "F#4"] },
-            "A7": { fingers: [{s:4, f:2}, {s:2, f:2}], status: ["x","o","o","o","o","o"], notes: "A, C#, E, G", freq: ["A2", "E3", "G3", "C#4", "E4"] },
-            "E7": { fingers: [{s:5, f:2}, {s:3, f:1}], status: ["o","o","o","o","o","o"], notes: "E, G#, B, D", freq: ["E2", "B2", "D3", "G#3", "B3", "E4"] },
-            "Fmaj7": { fingers: [{s:4, f:3}, {s:3, f:2}, {s:2, f:1}], status: ["x","x","o","o","o","o"], notes: "F, A, C, E", freq: ["F3", "A3", "C4", "E4"] },
-            "Cadd9": { fingers: [{s:5, f:3}, {s:4, f:2}, {s:2, f:3}], status: ["x","o","o","o","o","o"], notes: "C, E, G, D", freq: ["C3", "E3", "G3", "D4"] },
-            "Asus4": { fingers: [{s:4, f:2}, {s:3, f:2}, {s:2, f:3}], status: ["x","o","o","o","o","o"], notes: "A, D, E", freq: ["A2", "E3", "A3", "D4", "E4"] },
-            "Dsus4": { fingers: [{s:3, f:2}, {s:2, f:3}, {s:1, f:3}], status: ["x","x","o","o","o","o"], notes: "D, G, A", freq: ["D3", "A3", "D4", "G4"] },
-            "B7": { fingers: [{s:5, f:2}, {s:4, f:1}, {s:3, f:2}, {s:1, f:2}], status: ["x","o","o","o","o","o"], notes: "B, D#, F#, A", freq: ["B2", "D#3", "A3", "B3", "F#4"] },
-            "Am7": { fingers: [{s:4, f:2}, {s:2, f:1}], status: ["x","o","o","o","o","o"], notes: "A, C, E, G", freq: ["A2", "E3", "G3", "C4", "E4"] },
-            "Em7": { fingers: [{s:5, f:2}, {s:4, f:2}, {s:2, f:3}], status: ["o","o","o","o","o","o"], notes: "E, G, B, D", freq: ["E2", "B2", "D3", "G3", "D4", "E4"] },
-            "Dm7": { fingers: [{s:3, f:2}, {s:2, f:1}, {s:1, f:1}], status: ["x","x","o","o","o","o"], notes: "D, F, A, C", freq: ["D3", "A3", "C4", "F4"] },
-            "Gmaj7": { fingers: [{s:6, f:3}, {s:1, f:2}], status: ["o","o","o","o","o","o"], notes: "G, B, D, F#", freq: ["G2", "B2", "D3", "G3", "B3", "F#4"] },
-            "Bb": { fingers: [{s:5, f:1}, {s:4, f:3}, {s:3, f:3}, {s:2, f:3}], status: ["x","o","o","o","o","o"], notes: "Bb, D, F", freq: ["Bb2", "F3", "Bb3", "D4", "F4"] },
-            "Gm": { fingers: [{s:6, f:3}, {s:5, f:5}, {s:4, f:5}, {s:3, f:3}, {s:2, f:3}, {s:1, f:3}], status: ["o","o","o","o","o","o"], notes: "G, Bb, D", freq: ["G2", "D3", "G3", "Bb3", "D4", "G4"] },
-            "F#m": { fingers: [{s:6, f:2}, {s:5, f:4}, {s:4, f:4}, {s:3, f:2}, {s:2, f:2}, {s:1, f:2}], status: ["o","o","o","o","o","o"], notes: "F#, A, C#", freq: ["F#2", "C#3", "F#3", "A3", "C#4", "F#4"] },
-            "Bm7": { fingers: [{s:5, f:2}, {s:3, f:2}, {s:2, f:3}], status: ["x","o","o","o","o","o"], notes: "B, D, F#, A", freq: ["B2", "F#3", "A3", "D4", "F#4"] },
-            "Emaj7": { fingers: [{s:5, f:2}, {s:4, f:1}, {s:3, f:1}], status: ["o","o","o","o","o","o"], notes: "E, G#, B, D#", freq: ["E2", "B2", "D#3", "G#3", "B3", "E4"] },
-            "G6": { fingers: [{s:6, f:3}, {s:5, f:2}], status: ["o","o","o","o","o","o"], notes: "G, B, D, E", freq: ["G2", "B2", "D3", "G3", "B3", "E4"] }
-        };
-
-        // 2. 立即生成 UI 按鈕 (這段程式碼要最先執行)
-        function initButtons() {
-            const grid = document.getElementById('chordGrid');
-            if (!grid) return;
-            Object.keys(chords).forEach(name => {
-                const btn = document.createElement('button');
-                btn.className = 'chord-btn';
-                btn.innerText = name;
-                btn.onclick = () => selectChord(name, btn);
-                grid.appendChild(btn);
-            });
-            console.log("按鈕生成完畢");
-        }
-        initButtons();
-
-        // 3. 異步載入音色引擎
-        let isSoundOn = false;
-        let useGuitar = false;
-        const fallbackSynth = new Tone.PolySynth(Tone.Synth).toDestination();
-
-        // 嘗試從 CDN 載入真實音色
-        const sampler = new Tone.Sampler({
-            urls: { "A2": "A2.mp3", "C3": "C3.mp3", "E3": "E3.mp3", "G3": "G3.mp3", "A3": "A3.mp3", "C4": "C4.mp3" },
-            baseUrl: "https://gleitz.github.io/midi-js-soundfonts/MusyngKite/acoustic_guitar_nylon-mp3/",
-            onload: () => {
-                useGuitar = true;
-                document.getElementById('loadingMsg').innerText = "✅ 真實木吉他音色載入完成";
-            },
-            onerror: () => {
-                document.getElementById('loadingMsg').innerText = "⚠️ 外部音源載入慢，暫用合成音代替";
-            }
-        }).toDestination();
-
-        // 如果 3 秒內沒載入完，強制更新文字避免使用者乾等
-        setTimeout(() => {
-            if (!useGuitar) document.getElementById('loadingMsg').innerText = "⚠️ 正在背景努力載入音色中...";
-        }, 3000);
-
-        function toggleSound() {
-            isSoundOn = !isSoundOn;
-            const btn = document.getElementById('soundToggle');
-            if (isSoundOn) {
-                btn.innerText = "🔊 聲音：已開啟";
-                btn.classList.add('active');
-                Tone.start();
-            } else {
-                btn.innerText = "🔇 聲音：已關閉";
-                btn.classList.remove('active');
-            }
-        }
-
-        function selectChord(name, btnElement) {
-            // 切換按鈕樣式
-            document.querySelectorAll('.chord-btn').forEach(b => b.classList.remove('active'));
-            btnElement.classList.add('active');
-
-            const chord = chords[name];
-            document.getElementById('currentName').innerText = name;
-            document.getElementById('chordNotes').innerText = chord.notes;
-
-            // 更新 O/X 標示
-            const statusItems = document.querySelectorAll('.status-item');
-            chord.status.forEach((s, i) => {
-                if (s === 'x') {
-                    statusItems[i].innerHTML = '<span class="status-x">✕</span>';
-                } else {
-                    statusItems[i].innerHTML = '<span class="status-o">○</span>';
-                }
-            });
-
-            // 更新指板圖形
-            const board = document.getElementById('fretboard');
-            document.querySelectorAll('.finger').forEach(f => f.remove());
-            chord.fingers.forEach(f => {
-                const dot = document.createElement('div');
-                dot.className = 'finger';
-                dot.style.left = (6 - f.s) * 20 + '%';
-                dot.style.top = (f.f * 20) - 10 + '%';
-                board.appendChild(dot);
-            });
-
-            // 播放聲音 (Strum 撥弦效果)
-            if (isSoundOn) {
-                const now = Tone.now();
-                const player = useGuitar ? sampler : fallbackSynth;
-                chord.freq.forEach((f, i) => {
-                    player.triggerAttackRelease(f, "2n", now + i * 0.05);
-                });
-            }
-        }
-    </script>
-</body>
-</html>
+        .finger { position: absolute; width: 22px; height: 22px; background: #e74c3c; border-
