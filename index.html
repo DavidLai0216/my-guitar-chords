@@ -3,60 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎸 專業級矩陣和弦字典</title>
+    <title>🎸 專業級吉他和弦百科全書</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <style>
-        :root { --primary: #2c3e50; --accent: #e67e22; --success: #27ae60; --bg: #f8f9fa; }
-        body { font-family: -apple-system, sans-serif; background-color: var(--bg); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
-        .controls { margin-bottom: 25px; text-align: center; }
-        #soundToggle { padding: 12px 24px; font-size: 1rem; font-weight: bold; border: none; border-radius: 50px; cursor: pointer; transition: 0.3s; background-color: #ddd; }
-        #soundToggle.active { background-color: var(--success); color: white; }
+        :root { --primary: #2c3e50; --accent: #e67e22; --success: #27ae60; --bg: #f4f7f6; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .controls { margin-bottom: 20px; text-align: center; }
+        #soundToggle { padding: 12px 24px; border-radius: 50px; border: none; cursor: pointer; background: #ddd; font-weight: bold; font-size: 1rem; transition: 0.3s; }
+        #soundToggle.active { background: var(--success); color: white; }
         
-        .main-container { display: flex; gap: 20px; max-width: 1200px; width: 100%; flex-wrap: wrap; justify-content: center; }
+        .main-container { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; width: 100%; max-width: 1300px; }
         
-        /* 矩陣網格系統 */
-        .chord-section { flex: 1; min-width: 600px; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        .grid-header { display: grid; grid-template-columns: 40px repeat(6, 1fr); gap: 8px; margin-bottom: 10px; text-align: center; font-weight: bold; color: #888; font-size: 0.8rem; }
-        .chord-row { display: grid; grid-template-columns: 40px repeat(6, 1fr); gap: 8px; margin-bottom: 8px; align-items: center; }
-        .row-label { font-weight: bold; color: var(--primary); text-align: center; }
+        /* 矩陣區佈局 */
+        .chord-matrix-card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); flex: 1; min-width: 700px; overflow-x: auto; }
+        table { border-collapse: separate; border-spacing: 5px; width: 100%; }
+        th { color: #999; font-size: 0.75rem; padding: 5px 0; font-weight: normal; text-align: center; }
+        .row-label { font-weight: bold; color: var(--primary); font-size: 1.2rem; width: 35px; text-align: center; border-right: 2px solid #eee; }
         
-        .chord-btn { padding: 10px 2px; border: 1px solid #eee; background: #fff; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; font-size: 0.85rem; }
+        .chord-btn { width: 100%; min-width: 75px; padding: 10px 0; border: 1px solid #eee; background: white; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.85rem; transition: 0.2s; }
         .chord-btn:hover { border-color: var(--accent); background: #fffcf9; }
         .chord-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
 
-        /* 右側展示卡 */
-        .display-card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; width: 300px; position: sticky; top: 20px; height: fit-content; }
-        .status-bar { display: flex; justify-content: space-between; width: 180px; margin: 0 auto 5px auto; font-size: 1.4rem; height: 30px; }
-        .status-item { width: 20px; text-align: center; }
-        .status-x { color: #e74c3c; }
-        .status-o { color: var(--success); }
-        .fretboard { width: 180px; height: 220px; margin: 0 auto; position: relative; border: 2px solid #444; background: #fff; }
-        .string { position: absolute; width: 2px; background: #bbb; height: 100%; }
+        /* 展示卡片 */
+        .display-card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 300px; text-align: center; height: fit-content; position: sticky; top: 20px; }
+        .status-bar { display: flex; justify-content: space-between; width: 180px; margin: 0 auto 5px auto; font-size: 1.5rem; font-weight: bold; }
+        .status-x { color: #e74c3c; } .status-o { color: var(--success); }
+        .fretboard { width: 180px; height: 220px; margin: 0 auto; position: relative; border: 2px solid #444; background: white; }
+        .string { position: absolute; width: 1px; background: #ddd; height: 100%; }
         .fret { position: absolute; height: 2px; background: #444; width: 100%; }
         .s1{left:100%} .s2{left:80%} .s3{left:60%} .s4{left:40%} .s5{left:20%} .s6{left:0%}
         .f1{top:20%} .f2{top:40%} .f3{top:60%} .f4{top:80%}
         .finger { position: absolute; width: 22px; height: 22px; background: #e74c3c; border-radius: 50%; transform: translate(-50%, -50%); z-index: 10; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
         
-        #loadingMsg { font-size: 0.8rem; color: #999; margin-top: 8px; }
-        @media (max-width: 900px) { .chord-section { min-width: 100%; overflow-x: auto; } .main-container { flex-direction: column-reverse; align-items: center; } }
+        @media (max-width: 900px) { .main-container { flex-direction: column-reverse; } .chord-matrix-card { min-width: 100%; } }
     </style>
 </head>
 <body>
 
-    <h1>🎸 專業級吉他和弦矩陣</h1>
+    <h1>🎸 專業吉他和弦百科全書</h1>
     
     <div class="controls">
         <button id="soundToggle" onclick="toggleSound()">🔇 聲音：已關閉</button>
-        <p id="loadingMsg">正在初始化音訊模組...</p>
+        <p id="msg" style="font-size: 0.8rem; color: #999; margin-top: 8px;">載入專業木吉他取樣中...</p>
     </div>
 
     <div class="main-container">
-        <div class="chord-section">
-            <div class="grid-header">
-                <div></div>
-                <div>Major</div><div>Minor</div><div>Maj7</div><div>7th</div><div>Sus4</div><div>Slash</div>
-            </div>
-            <div id="matrixContainer"></div>
+        <div class="chord-matrix-card">
+            <table>
+                <thead>
+                    <tr><th></th><th>Major</th><th>Minor</th><th>7th</th><th>m7</th><th>Maj7</th><th>Sus4</th><th>Slash</th></tr>
+                </thead>
+                <tbody id="matrixBody"></tbody>
+            </table>
         </div>
 
         <div class="display-card">
@@ -69,142 +67,145 @@
                 <div class="string s4"></div><div class="string s5"></div><div class="string s6"></div>
                 <div class="fret f1"></div><div class="fret f2"></div><div class="fret f3"></div><div class="fret f4"></div>
             </div>
-            <h2 id="currentName" style="color: var(--accent); margin: 15px 0 5px 0;">請選擇和弦</h2>
-            <p style="font-size: 0.85rem; color: #666;">組成音：<span id="chordNotes">-</span></p>
+            <h2 id="chordTitle" style="color: var(--accent); margin: 15px 0 5px 0;">請點選和弦</h2>
+            <p id="chordNotes" style="font-size: 0.85rem; color: #666;">組成音：-</p>
         </div>
     </div>
 
     <script>
-        // 42個和弦完整資料庫 (7根音 x 6變體)
+        // 核心資料庫 (包含你補上的所有成員)
         const chordData = {
-            "C": { fingers: [{s:5, f:3}, {s:4, f:2}, {s:2, f:1}], status: ["x","o","o","o","o","o"], notes: "C E G", freq: ["C3","E3","G3","C4","E4"] },
-            "Cm": { fingers: [{s:5, f:3}, {s:4, f:5}, {s:3, f:5}, {s:2, f:4}, {s:1, f:3}], status: ["x","o","o","o","o","o"], notes: "C Eb G", freq: ["C3","G3","C4","Eb4","G4"] },
-            "Cmaj7": { fingers: [{s:5, f:3}, {s:4, f:2}, {s:2, f:0}], status: ["x","o","o","o","o","o"], notes: "C E G B", freq: ["C3","E3","G3","B3","E4"] },
-            "C7": { fingers: [{s:5, f:3}, {s:4, f:2}, {s:3, f:3}, {s:2, f:1}], status: ["x","o","o","o","o","o"], notes: "C E G Bb", freq: ["C3","E3","Bb3","C4","E4"] },
-            "Csus4": { fingers: [{s:5, f:3}, {s:4, f:3}, {s:3, f:0}, {s:2, f:1}], status: ["x","o","o","o","o","o"], notes: "C F G", freq: ["C3","F3","G3","C4"] },
-            "C/G": { fingers: [{s:6, f:3}, {s:5, f:3}, {s:4, f:2}, {s:2, f:1}], status: ["o","o","o","o","o","o"], notes: "G C E G", freq: ["G2","C3","E3","G3","C4","E4"] },
+            "C": { fingers:[{s:5,f:3},{s:4,f:2},{s:2,f:1}], status:["x","o","o","o","o","o"], notes:"C E G", freq:["C3","E3","G3","C4","E4"] },
+            "Cm": { fingers:[{s:5,f:3},{s:4,f:5},{s:3,f:5},{s:2,f:4},{s:1,f:3}], status:["x","o","o","o","o","o"], notes:"C Eb G", freq:["C3","G3","C4","Eb4","G4"] },
+            "C7": { fingers:[{s:5,f:3},{s:4,f:2},{s:3,f:3},{s:2,f:1}], status:["x","o","o","o","o","o"], notes:"C E G Bb", freq:["C3","E3","Bb3","C4","E4"] },
+            "Cm7": { fingers:[{s:5,f:3},{s:3,f:3},{s:2,f:4}], status:["x","o","o","o","o","o"], notes:"C Eb G Bb", freq:["C3","G3","Bb3","Eb4"] },
+            "Cmaj7": { fingers:[{s:5,f:3},{s:4,f:2}], status:["x","o","o","o","o","o"], notes:"C E G B", freq:["C3","E3","G3","B3","E4"] },
+            "Csus4": { fingers:[{s:5,f:3},{s:4,f:3},{s:2,f:1}], status:["x","o","o","o","o","o"], notes:"C F G", freq:["C3","F3","G3","C4"] },
+            "C/G": { fingers:[{s:6,f:3},{s:5,f:3},{s:4,f:2},{s:2,f:1}], status:["o","o","o","o","o","o"], notes:"G C E", freq:["G2","C3","E3","G3","C4"] },
 
-            "D": { fingers: [{s:3, f:2}, {s:2, f:3}, {s:1, f:2}], status: ["x","x","o","o","o","o"], notes: "D F# A", freq: ["D3","A3","D4","F#4"] },
-            "Dm": { fingers: [{s:3, f:2}, {s:2, f:3}, {s:1, f:1}], status: ["x","x","o","o","o","o"], notes: "D F A", freq: ["D3","A3","D4","F4"] },
-            "Dmaj7": { fingers: [{s:3, f:2}, {s:2, f:2}, {s:1, f:2}], status: ["x","x","o","o","o","o"], notes: "D F# A C#", freq: ["D3","A3","C#4","F#4"] },
-            "D7": { fingers: [{s:3, f:2}, {s:2, f:1}, {s:1, f:2}], status: ["x","x","o","o","o","o"], notes: "D F# A C", freq: ["D3","A3","C4","F#4"] },
-            "Dsus4": { fingers: [{s:3, f:2}, {s:2, f:3}, {s:1, f:3}], status: ["x","x","o","o","o","o"], notes: "D G A", freq: ["D3","A3","D4","G4"] },
-            "D/A": { fingers: [{s:5, f:0}, {s:4, f:0}, {s:3, f:2}, {s:2, f:3}, {s:1, f:2}], status: ["x","o","o","o","o","o"], notes: "A D F#", freq: ["A2","D3","A3","D4","F#4"] },
+            "D": { fingers:[{s:3,f:2},{s:2,f:3},{s:1,f:2}], status:["x","x","o","o","o","o"], notes:"D F# A", freq:["D3","A3","D4","F#4"] },
+            "Dm": { fingers:[{s:3,f:2},{s:2,f:3},{s:1,f:1}], status:["x","x","o","o","o","o"], notes:"D F A", freq:["D3","A3","D4","F4"] },
+            "D7": { fingers:[{s:3,f:2},{s:2,f:1},{s:1,f:2}], status:["x","x","o","o","o","o"], notes:"D F# A C", freq:["D3","A3","C4","F#4"] },
+            "Dm7": { fingers:[{s:3,f:2},{s:2,f:1},{s:1,f:1}], status:["x","x","o","o","o","o"], notes:"D F A C", freq:["D3","A3","C4","F4"] },
+            "Dmaj7": { fingers:[{s:3,f:2},{s:2,f:2},{s:1,f:2}], status:["x","x","o","o","o","o"], notes:"D F# A C#", freq:["D3","A3","C#4","F#4"] },
+            "Dsus4": { fingers:[{s:3,f:2},{s:2,f:3},{s:1,f:3}], status:["x","x","o","o","o","o"], notes:"D G A", freq:["D3","A3","D4","G4"] },
+            "D/F#": { fingers:[{s:6,f:2},{s:3,f:2},{s:2,f:3},{s:1,f:2}], status:["o","x","o","o","o","o"], notes:"F# A D F#", freq:["F#2","A3","D4","F#4"] },
 
-            "E": { fingers: [{s:5, f:2}, {s:4, f:2}, {s:3, f:1}], status: ["o","o","o","o","o","o"], notes: "E G# B", freq: ["E2","B2","E3","G#3","B3","E4"] },
-            "Em": { fingers: [{s:5, f:2}, {s:4, f:2}], status: ["o","o","o","o","o","o"], notes: "E G B", freq: ["E2","B2","E3","G3","B3","E4"] },
-            "Emaj7": { fingers: [{s:5, f:2}, {s:4, f:1}, {s:3, f:1}], status: ["o","o","o","o","o","o"], notes: "E G# B D#", freq: ["E2","B2","D#3","G#3","B3","E4"] },
-            "E7": { fingers: [{s:5, f:2}, {s:3, f:1}], status: ["o","o","o","o","o","o"], notes: "E G# B D", freq: ["E2","B2","D3","G#3","B3","E4"] },
-            "Esus4": { fingers: [{s:5, f:2}, {s:4, f:2}, {s:3, f:2}], status: ["o","o","o","o","o","o"], notes: "E A B", freq: ["E2","B2","E3","A3","B3","E4"] },
-            "E/B": { fingers: [{s:6, f:0}, {s:5, f:2}, {s:4, f:2}, {s:3, f:1}], status: ["o","o","o","o","o","o"], notes: "B E G#", freq: ["B2","E3","G#3","B3","E4"] },
+            "E": { fingers:[{s:5,f:2},{s:4,f:2},{s:3,f:1}], status:["o","o","o","o","o","o"], notes:"E G# B", freq:["E2","B2","E3","G#3","B3","E4"] },
+            "Em": { fingers:[{s:5,f:2},{s:4,f:2}], status:["o","o","o","o","o","o"], notes:"E G B", freq:["E2","B2","E3","G3","B3","E4"] },
+            "E7": { fingers:[{s:5,f:2},{s:3,f:1}], status:["o","o","o","o","o","o"], notes:"E G# B D", freq:["E2","B2","D3","G#3","B3","E4"] },
+            "Em7": { fingers:[{s:5,f:2}], status:["o","o","o","o","o","o"], notes:"E G B D", freq:["E2","B2","D3","G3","B3","E4"] },
+            "Emaj7": { fingers:[{s:5,f:2},{s:4,f:1},{s:3,f:1}], status:["o","o","o","o","o","o"], notes: "E G# B D#", freq:["E2","B2","D#3","G#3","B3","E4"] },
+            "Esus4": { fingers:[{s:5,f:2},{s:4,f:2},{s:3,f:2}], status:["o","o","o","o","o","o"], notes:"E A B", freq:["E2","B2","E3","A3","B3","E4"] },
+            "Em/D": { fingers:[{s:5,f:2},{s:4,f:0}], status:["o","o","o","o","o","o"], notes:"D E G B", freq:["D3","E3","G3","B3","E4"] },
 
-            "F": { fingers: [{s:6, f:1}, {s:5, f:3}, {s:4, f:3}, {s:3, f:2}, {s:2, f:1}, {s:1, f:1}], status: ["o","o","o","o","o","o"], notes: "F A C", freq: ["F2","C3","F3","A3","C4","F4"] },
-            "Fm": { fingers: [{s:6, f:1}, {s:5, f:3}, {s:4, f:3}, {s:3, f:1}, {s:2, f:1}, {s:1, f:1}], status: ["o","o","o","o","o","o"], notes: "F Ab C", freq: ["F2","C3","F3","Ab3","C4","F4"] },
-            "Fmaj7": { fingers: [{s:4, f:3}, {s:3, f:2}, {s:2, f:1}], status: ["x","x","o","o","o","o"], notes: "F A C E", freq: ["F3","A3","C4","E4"] },
-            "F7": { fingers: [{s:6, f:1}, {s:5, f:3}, {s:4, f:1}, {s:3, f:2}, {s:2, f:1}, {s:1, f:1}], status: ["o","o","o","o","o","o"], notes: "F A C Eb", freq: ["F2","C3","Eb3","A3","C4","F4"] },
-            "Fsus4": { fingers: [{s:6, f:1}, {s:5, f:3}, {s:4, f:3}, {s:3, f:3}, {s:2, f:1}, {s:1, f:1}], status: ["o","o","o","o","o","o"], notes: "F Bb C", freq: ["F2","C3","F3","Bb3","C4","F4"] },
-            "F/C": { fingers: [{s:5, f:3}, {s:4, f:3}, {s:3, f:2}, {s:2, f:1}], status: ["x","o","o","o","o","o"], notes: "C F A", freq: ["C3","F3","A3","C4","F4"] },
+            "F": { fingers:[{s:6,f:1},{s:5,f:3},{s:4,f:3},{s:3,f:2},{s:2,f:1},{s:1,f:1}], status:["o","o","o","o","o","o"], notes:"F A C", freq:["F2","C3","F3","A3","C4","F4"] },
+            "Fm": { fingers:[{s:6,f:1},{s:5,f:3},{s:4,f:3},{s:3,f:1},{s:2,f:1},{s:1,f:1}], status:["o","o","o","o","o","o"], notes:"F Ab C", freq:["F2","C3","F3","Ab3","C4","F4"] },
+            "F7": { fingers:[{s:6,f:1},{s:5,f:3},{s:4,f:1},{s:3,f:2},{s:2,f:1},{s:1,f:1}], status:["o","o","o","o","o","o"], notes:"F A C Eb", freq:["F2","C3","Eb3","A3","C4","F4"] },
+            "Fm7": { fingers:[{s:6,f:1},{s:5,f:3},{s:4,f:1},{s:3,f:1},{s:2,f:1},{s:1,f:1}], status:["o","o","o","o","o","o"], notes:"F Ab C Eb", freq:["F2","C3","Eb3","Ab3","C4","F4"] },
+            "Fmaj7": { fingers:[{s:4,f:3},{s:3,f:2},{s:2,f:1}], status:["x","x","o","o","o","o"], notes:"F A C E", freq:["F3","A3","C4","E4"] },
+            "Fsus4": { fingers:[{s:6,f:1},{s:5,f:3},{s:4,f:3},{s:3,f:3},{s:2,f:1},{s:1,f:1}], status:["o","o","o","o","o","o"], notes:"F Bb C", freq:["F2","C3","F3","Bb3","C4","F4"] },
+            "F/C": { fingers:[{s:5,f:3},{s:4,f:3},{s:3,f:2},{s:2,f:1}], status:["x","o","o","o","o","o"], notes:"C F A", freq:["C3","F3","A3","C4","F4"] },
 
-            "G": { fingers: [{s:6, f:3}, {s:5, f:2}, {s:1, f:3}], status: ["o","o","o","o","o","o"], notes: "G B D", freq: ["G2","B2","D3","G3","B3","G4"] },
-            "Gm": { fingers: [{s:6, f:3}, {s:5, f:5}, {s:4, f:5}, {s:3, f:3}, {s:2, f:3}, {s:1, f:3}], status: ["o","o","o","o","o","o"], notes: "G Bb D", freq: ["G2","D3","G3","Bb3","D4","G4"] },
-            "Gmaj7": { fingers: [{s:6, f:3}, {s:1, f:2}], status: ["o","o","o","o","o","o"], notes: "G B D F#", freq: ["G2","B2","D3","G3","B3","F#4"] },
-            "G7": { fingers: [{s:6, f:3}, {s:5, f:2}, {s:1, f:1}], status: ["o","o","o","o","o","o"], notes: "G B D F", freq: ["G2","B2","D3","G3","B3","F4"] },
-            "Gsus4": { fingers: [{s:6, f:3}, {s:5, f:3}, {s:4, f:0}, {s:3, f:0}, {s:2, f:1}, {s:1, f:3}], status: ["o","o","o","o","o","o"], notes: "G C D", freq: ["G2","C3","D3","G3","C4","G4"] },
-            "G/D": { fingers: [{s:4, f:0}, {s:3, f:0}, {s:2, f:0}, {s:1, f:3}], status: ["x","x","o","o","o","o"], notes: "D G B", freq: ["D3","G3","B3","G4"] },
+            "G": { fingers:[{s:6,f:3},{s:5,f:2},{s:1,f:3}], status:["o","o","o","o","o","o"], notes:"G B D", freq:["G2","B2","D3","G3","B3","G4"] },
+            "Gm": { fingers:[{s:6,f:3},{s:5,f:5},{s:4,f:5},{s:3,f:3},{s:2,f:3},{s:1,f:3}], status:["o","o","o","o","o","o"], notes:"G Bb D", freq:["G2","D3","G3","Bb3","D4","G4"] },
+            "G7": { fingers:[{s:6,f:3},{s:5,f:2},{s:1,f:1}], status:["o","o","o","o","o","o"], notes:"G B D F", freq:["G2","B2","D3","G3","B3","F4"] },
+            "Gm7": { fingers:[{s:6,f:3},{s:4,f:3},{s:3,f:3},{s:2,f:3}], status:["o","x","o","o","o","o"], notes:"G Bb D F", freq:["G2","D3","F3","Bb3","D4"] },
+            "Gmaj7": { fingers:[{s:6,f:3},{s:1,f:2}], status:["o","o","o","o","o","o"], notes:"G B D F#", freq:["G2","B2","D3","G3","B3","F#4"] },
+            "Gsus4": { fingers:[{s:6,f:3},{s:5,f:3},{s:2,f:1},{s:1,f:3}], status:["o","o","o","o","o","o"], notes:"G C D", freq:["G2","C3","D3","G3","C4","G4"] },
+            "C/D": { fingers:[{s:4,f:0},{s:2,f:1}], status:["x","x","o","o","o","o"], notes:"D C E G", freq:["D3","C4","E4","G4"] },
 
-            "A": { fingers: [{s:4, f:2}, {s:3, f:2}, {s:2, f:2}], status: ["x","o","o","o","o","o"], notes: "A C# E", freq: ["A2","E3","A3","C#4","E4"] },
-            "Am": { fingers: [{s:4, f:2}, {s:3, f:2}, {s:2, f:1}], status: ["x","o","o","o","o","o"], notes: "A C E", freq: ["A2","E3","A3","C4","E4"] },
-            "Amaj7": { fingers: [{s:4, f:2}, {s:3, f:1}, {s:2, f:2}], status: ["x","o","o","o","o","o"], notes: "A C# E G#", freq: ["A2","E3","G#3","C#4","E4"] },
-            "A7": { fingers: [{s:4, f:2}, {s:2, f:2}], status: ["x","o","o","o","o","o"], notes: "A C# E G", freq: ["A2","E3","G3","C#4","E4"] },
-            "Asus4": { fingers: [{s:4, f:2}, {s:3, f:2}, {s:2, f:3}], status: ["x","o","o","o","o","o"], notes: "A D E", freq: ["A2","E3","A3","D4","E4"] },
-            "A/E": { fingers: [{s:6, f:0}, {s:5, f:0}, {s:4, f:2}, {s:3, f:2}, {s:2, f:2}], status: ["o","o","o","o","o","o"], notes: "E A C#", freq: ["E2","A2","E3","A3","C#4","E4"] },
+            "A": { fingers:[{s:4,f:2},{s:3,f:2},{s:2,f:2}], status:["x","o","o","o","o","o"], notes:"A C# E", freq:["A2","E3","A3","C#4","E4"] },
+            "Am": { fingers:[{s:4,f:2},{s:3,f:2},{s:2,f:1}], status:["x","o","o","o","o","o"], notes:"A C E", freq:["A2","E3","A3","C4","E4"] },
+            "A7": { fingers:[{s:4,f:2},{s:2,f:2}], status:["x","o","o","o","o","o"], notes:"A C# E G", freq:["A2","E3","G3","C#4","E4"] },
+            "Am7": { fingers:[{s:4,f:2},{s:2,f:1}], status:["x","o","o","o","o","o"], notes:"A C E G", freq:["A2","E3","G3","C4","E4"] },
+            "Amaj7": { fingers:[{s:4,f:2},{s:3,f:1},{s:2,f:2}], status:["x","o","o","o","o","o"], notes: "A C# E G#", freq:["A2","E3","G#3","C#4","E4"] },
+            "Asus4": { fingers:[{s:4,f:2},{s:3,f:2},{s:2,f:3}], status:["x","o","o","o","o","o"], notes:"A D E", freq:["A2","E3","A3","D4","E4"] },
+            "A/E": { fingers:[{s:6,f:0},{s:5,f:0},{s:4,f:2},{s:3,f:2},{s:2,f:2}], status:["o","o","o","o","o","o"], notes:"E A C#", freq:["E2","A2","E3","A3","C#4"] },
 
-            "B": { fingers: [{s:5, f:2}, {s:4, f:4}, {s:3, f:4}, {s:2, f:4}], status: ["x","o","o","o","o","o"], notes: "B D# F#", freq: ["B2","F#3","B3","D#4","F#4"] },
-            "Bm": { fingers: [{s:5, f:2}, {s:4, f:4}, {s:3, f:4}, {s:2, f:3}], status: ["x","o","o","o","o","o"], notes: "B D F#", freq: ["B2","F#3","B3","D4","F#4"] },
-            "Bmaj7": { fingers: [{s:5, f:2}, {s:4, f:4}, {s:3, f:3}, {s:2, f:4}], status: ["x","o","o","o","o","o"], notes: "B D# F# A#", freq: ["B2","F#3","A#3","D#4","F#4"] },
-            "B7": { fingers: [{s:5, f:2}, {s:4, f:1}, {s:3, f:2}, {s:1, f:2}], status: ["x","o","o","o","o","o"], notes: "B D# F# A", freq: ["B2","D#3","A3","B3","F#4"] },
-            "Bsus4": { fingers: [{s:5, f:2}, {s:4, f:4}, {s:3, f:4}, {s:2, f:5}], status: ["x","o","o","o","o","o"], notes: "B E F#", freq: ["B2","F#3","B3","E4","F#4"] },
-            "B/F#": { fingers: [{s:6, f:2}, {s:5, f:2}, {s:4, f:4}, {s:3, f:4}, {s:2, f:4}], status: ["o","o","o","o","o","o"], notes: "F# B D#", freq: ["F#2","B2","F#3","B3","D#4"] }
+            "B": { fingers:[{s:5,f:2},{s:4,f:4},{s:3,f:4},{s:2,f:4}], status:["x","o","o","o","o","o"], notes:"B D# F#", freq:["B2","F#3","B3","D#4","F#4"] },
+            "Bm": { fingers:[{s:5,f:2},{s:4,f:4},{s:3,f:4},{s:2,f:3}], status:["x","o","o","o","o","o"], notes:"B D F#", freq:["B2","F#3","B3","D4","F#4"] },
+            "B7": { fingers:[{s:5,f:2},{s:4,f:1},{s:3,f:2},{s:1,f:2}], status:["x","o","o","o","o","o"], notes:"B D# F# A", freq:["B2","D#3","A3","B3","F#4"] },
+            "Bm7": { fingers:[{s:5,f:2},{s:3,f:2},{s:2,f:3}], status:["x","o","o","o","o","o"], notes:"B D F# A", freq:["B2","F#3","A3","D4","F#4"] },
+            "Bmaj7": { fingers:[{s:5,f:2},{s:4,f:4},{s:3,f:3},{s:2,f:4}], status:["x","o","o","o","o","o"], notes: "B D# F# A#", freq:["B2","F#3","A#3","D#4","F#4"] },
+            "Bsus4": { fingers:[{s:5,f:2},{s:4,f:4},{s:3,f:4},{s:2,f:5}], status:["x","o","o","o","o","o"], notes:"B E F#", freq:["B2","F#3","B3","E4","F#4"] },
+            "B/F#": { fingers:[{s:6,f:2},{s:5,f:2},{s:4,f:4},{s:3,f:4},{s:2,f:4}], status:["o","o","o","o","o","o"], notes:"F# B D#", freq:["F#2","B2","F#3","B3","D#4"] }
         };
 
         const roots = ["C", "D", "E", "F", "G", "A", "B"];
-        const types = ["", "m", "maj7", "7", "sus4", "slash"];
+        const colTypes = ["", "m", "7", "m7", "maj7", "sus4", "slash"];
 
-        // 動態生成矩陣
-        const container = document.getElementById('matrixContainer');
-        roots.forEach(root => {
-            const row = document.createElement('div');
-            row.className = 'chord-row';
-            
-            // 加入列標籤 (C, D, E...)
-            const label = document.createElement('div');
-            label.className = 'row-label';
-            label.innerText = root;
-            row.appendChild(label);
-
-            // 加入六個按鈕
-            types.forEach(type => {
-                const chordKey = (type === 'slash') ? getSlashKey(root) : root + type;
-                const btn = document.createElement('button');
+        // 渲染 7x7 矩陣
+        const matrixBody = document.getElementById('matrixBody');
+        roots.forEach(r => {
+            let tr = document.createElement('tr');
+            tr.innerHTML = `<td class="row-label">${r}</td>`;
+            colTypes.forEach(t => {
+                let key = (t === 'slash') ? getSpecial(r) : r + t;
+                let td = document.createElement('td');
+                let btn = document.createElement('button');
                 btn.className = 'chord-btn';
-                btn.innerText = chordKey;
-                btn.onclick = () => selectChord(chordKey, btn);
-                row.appendChild(btn);
+                btn.innerText = key;
+                btn.onclick = () => selectChord(key, btn);
+                td.appendChild(btn);
+                tr.appendChild(td);
             });
-            container.appendChild(row);
+            matrixBody.appendChild(tr);
         });
 
-        function getSlashKey(root) {
-            const slashMap = {"C":"C/G", "D":"D/A", "E":"E/B", "F":"F/C", "G":"G/D", "A":"A/E", "B":"B/F#"};
-            return slashMap[root];
+        function getSpecial(r) {
+            const m = {"C":"C/G","D":"D/F#","E":"Em/D","F":"F/C","G":"C/D","A":"A/E","B":"B/F#"};
+            return m[r];
         }
 
-        // 聲音與功能邏輯
-        let isSoundOn = false;
-        let useGuitar = false;
-        const fallbackSynth = new Tone.PolySynth(Tone.Synth).toDestination();
+        // 聲音引擎
+        let isOn = false;
+        let guitarReady = false;
+        const synthFallback = new Tone.PolySynth(Tone.Synth).toDestination();
         const sampler = new Tone.Sampler({
-            urls: { "A2": "A2.mp3", "C3": "C3.mp3", "E3": "E3.mp3", "G3": "G3.mp3" },
+            urls: { "A2": "A2.mp3", "C3": "C3.mp3", "E3": "E3.mp3" },
             baseUrl: "https://gleitz.github.io/midi-js-soundfonts/MusyngKite/acoustic_guitar_nylon-mp3/",
-            onload: () => { useGuitar = true; document.getElementById('loadingMsg').innerText = "✅ 木吉他音色就緒"; },
-            onerror: () => { document.getElementById('loadingMsg').innerText = "⚠️ 暫用合成音代替"; }
+            onload: () => { guitarReady = true; document.getElementById('msg').innerText = "✅ 木吉他音色載入完成！"; }
         }).toDestination();
 
         function toggleSound() {
-            isSoundOn = !isSoundOn;
-            const btn = document.getElementById('soundToggle');
-            btn.innerText = isSoundOn ? "🔊 聲音：已開啟" : "🔇 聲音：已關閉";
-            btn.classList.toggle('active', isSoundOn);
-            if (isSoundOn) Tone.start();
+            isOn = !isOn;
+            const b = document.getElementById('soundToggle');
+            b.innerText = isOn ? "🔊 聲音：已開啟" : "🔇 聲音：已關閉";
+            b.classList.toggle('active', isOn);
+            if(isOn) Tone.start();
         }
 
         function selectChord(name, btn) {
             document.querySelectorAll('.chord-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             const data = chordData[name];
-            document.getElementById('currentName').innerText = name;
-            document.getElementById('chordNotes').innerText = data.notes;
+            if(!data) return;
 
-            // 更新 O/X
-            const statusItems = document.querySelectorAll('.status-item');
+            document.getElementById('chordTitle').innerText = name;
+            document.getElementById('chordNotes').innerText = "組成音：" + data.notes;
+
+            // X/O 狀態
+            const sItems = document.querySelectorAll('.status-item');
             data.status.forEach((s, i) => {
-                statusItems[i].innerHTML = s === 'x' ? '<span class="status-x">✕</span>' : '<span class="status-o">○</span>';
+                sItems[i].innerHTML = s === 'x' ? '<span class="status-x">✕</span>' : '<span class="status-o">○</span>';
             });
 
-            // 更新指板
+            // 指法點位
             const board = document.getElementById('fretboard');
             document.querySelectorAll('.finger').forEach(f => f.remove());
             data.fingers.forEach(f => {
-                const dot = document.createElement('div');
-                dot.className = 'finger';
-                dot.style.left = (6 - f.s) * 20 + '%';
-                dot.style.top = (f.f * 20) - 10 + '%';
-                board.appendChild(dot);
+                const d = document.createElement('div');
+                d.className = 'finger';
+                d.style.left = (6 - f.s) * 20 + '%';
+                d.style.top = (f.f * 20) - 10 + '%';
+                board.appendChild(d);
             });
 
-            if (isSoundOn) {
+            // 撥奏
+            if(isOn) {
+                const player = guitarReady ? sampler : synthFallback;
                 const now = Tone.now();
-                const player = useGuitar ? sampler : fallbackSynth;
                 data.freq.forEach((f, i) => player.triggerAttackRelease(f, "2n", now + i * 0.05));
             }
         }
