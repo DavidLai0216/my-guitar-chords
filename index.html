@@ -3,28 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎸 專業級矩陣和弦字典</title>
+    <title>🎸 專業級吉他和弦矩陣庫</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <style>
         :root { --primary: #2c3e50; --accent: #e67e22; --success: #27ae60; --bg: #f8f9fa; }
         body { font-family: -apple-system, sans-serif; background-color: var(--bg); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
         .controls { margin-bottom: 25px; text-align: center; }
-        #soundToggle { padding: 12px 24px; font-size: 1rem; font-weight: bold; border: none; border-radius: 50px; cursor: pointer; transition: 0.3s; background-color: #ddd; }
+        #soundToggle { padding: 12px 24px; font-size: 1rem; font-weight: bold; border: none; border-radius: 50px; cursor: pointer; transition: 0.3s; background-color: #ddd; color: #333; }
         #soundToggle.active { background-color: var(--success); color: white; }
-        
         .main-container { display: flex; gap: 20px; max-width: 1200px; width: 100%; flex-wrap: wrap; justify-content: center; }
-        
-        /* 矩陣網格系統 */
         .chord-section { flex: 1; min-width: 600px; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         .grid-header { display: grid; grid-template-columns: 40px repeat(6, 1fr); gap: 8px; margin-bottom: 10px; text-align: center; font-weight: bold; color: #888; font-size: 0.8rem; }
         .chord-row { display: grid; grid-template-columns: 40px repeat(6, 1fr); gap: 8px; margin-bottom: 8px; align-items: center; }
         .row-label { font-weight: bold; color: var(--primary); text-align: center; }
-        
-        .chord-btn { padding: 10px 2px; border: 1px solid #eee; background: #fff; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; font-size: 0.85rem; }
-        .chord-btn:hover { border-color: var(--accent); background: #fffcf9; }
-        .chord-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
-
-        /* 右側展示卡 */
+        .chord-btn { padding: 10px 2px; border: 1px solid #eee; background: #fff; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.85rem; }
+        .chord-btn:hover { border-color: var(--accent); }
+        .chord-btn.active { background: var(--accent); color: white; }
         .display-card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; width: 300px; position: sticky; top: 20px; height: fit-content; }
         .status-bar { display: flex; justify-content: space-between; width: 180px; margin: 0 auto 5px auto; font-size: 1.4rem; height: 30px; }
         .status-item { width: 20px; text-align: center; }
@@ -32,7 +26,4 @@
         .status-o { color: var(--success); }
         .fretboard { width: 180px; height: 220px; margin: 0 auto; position: relative; border: 2px solid #444; background: #fff; }
         .string { position: absolute; width: 2px; background: #bbb; height: 100%; }
-        .fret { position: absolute; height: 2px; background: #444; width: 100%; }
-        .s1{left:100%} .s2{left:80%} .s3{left:60%} .s4{left:40%} .s5{left:20%} .s6{left:0%}
-        .f1{top:20%} .f2{top:40%} .f3{top:60%} .f4{top:80%}
-        .finger { position: absolute; width: 22px; height: 22px; background: #e74c3c; border-
+        .fret { position: absolute; height: 2px; background: #444; width: 10
