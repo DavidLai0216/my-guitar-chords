@@ -78,12 +78,17 @@ P:["感知 P","偏好保持選項開放，依新資訊持續調整"]
 var TEST_VERSION="Beta 1.4 · 2026-09-19";
 var app=document.getElementById("app");
 var st={phase:"intro",i:0,a:[],cq:[],ca:[],started:0};
+var STORAGE_KEY="mbti_pref_progress_v1";
+function saveProgress(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(st))}catch(e){}}
+function loadProgress(){try{var x=localStorage.getItem(STORAGE_KEY);if(!x)return null;var s=JSON.parse(x);if(!s||!s.phase)return null;return s}catch(e){return null}}
+function clearProgress(){try{localStorage.removeItem(STORAGE_KEY)}catch(e){}}
+function hasResume(){var s=loadProgress();return !!(s&&s.a&&s.a.length>0&&s.phase!=="intro")}
 var lab={EI:["E 外向","I 內向"],SN:["S 實感","N 直覺"],TF:["T 思考","F 情感"],JP:["J 判斷","P 感知"]};
 function esc(s){return String(s).replace(/[&<>"]/g,function(m){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]})}
-function intro(){app.innerHTML='<section class="card"><div class="eyebrow">68 題核心題＋必要時校準題 · 約 6–9 分鐘</div><div class="small muted" id="versionTag"></div><h1>四向度人格偏好測驗</h1><p>用日常情境觀察你在 <b>E/I、S/N、T/F、J/P</b> 四個向度上的自然偏好。</p><p class="muted">前 68 題為核心題；若某個向度的核心支持度不足，系統會自動針對最不確定的向度追加 5 題校準。請選「比較像平常的你」，不是「理想中的你」。A/B 位置已交錯安排，請不要依按鍵位置作答。</p><button class="primary" id="start">開始測驗</button><div class="note small">本測驗為自製的四向度人格偏好工具，並非 The Myers-Briggs Company 的官方 MBTI® 評量；適合自我探索，不宜作為人事甄選、醫療或心理診斷依據。網站目前不會自動上傳你的作答資料。</div></section>';document.getElementById("versionTag").innerText=TEST_VERSION;document.getElementById("start").onclick=function(){st={phase:"core",i:0,a:[],cq:[],ca:[],started:Date.now()};render()}}
+function intro(){app.innerHTML='<section class="card"><div class="eyebrow">68 題核心題＋必要時校準題 · 約 6–9 分鐘</div><div class="small muted" id="versionTag"></div><h1>四向度人格偏好測驗</h1><p>用日常情境觀察你在 <b>E/I、S/N、T/F、J/P</b> 四個向度上的自然偏好。</p><p class="muted">前 68 題為核心題；若某個向度的核心支持度不足，系統會自動針對最不確定的向度追加 5 題校準。請選「比較像平常的你」，不是「理想中的你」。A/B 位置已交錯安排，請不要依按鍵位置作答。</p><button class="primary" id="start">開始測驗</button><button class="secondary" id="resume" style="width:100%;margin-top:10px;display:none">繼續上次進度</button><div class="note small">本測驗為自製的四向度人格偏好工具，並非 The Myers-Briggs Company 的官方 MBTI® 評量；適合自我探索，不宜作為人事甄選、醫療或心理診斷依據。網站目前不會自動上傳你的作答資料。</div></section>';document.getElementById("versionTag").innerText=TEST_VERSION;var rb=document.getElementById("resume");if(hasResume())rb.style.display="block";rb.onclick=function(){var old=loadProgress();if(old){st=old;render()}};document.getElementById("start").onclick=function(){clearProgress();st={phase:"core",i:0,a:[],cq:[],ca:[],started:Date.now()};saveProgress();render()}}
 function render(){var c=st.phase==="cal",n=c?68+st.i:st.i,x=c?st.cq[st.i]:Q[st.i],total=c?68+st.cq.length:68;app.innerHTML='<section class="card"><div class="top"><div class="progress"><div class="bar" style="width:'+(n/total*100)+'%"></div></div><div class="count">'+(n+1)+' / '+total+'</div></div><div class="eyebrow">'+(c?"校準題":"情境題")+'</div><div class="q">'+esc(c?"校準題：哪一個描述更接近平常的你？":x[0])+'</div><div class="choices"><button class="choice" id="a">A　'+esc(c?x[0]:x[1])+'</button><button class="choice" id="b">B　'+esc(c?x[1]:x[2])+'</button></div>'+(n?'<button class="back" id="back">← 上一題</button>':'')+'</section>';document.getElementById("a").onclick=function(){ans("a")};document.getElementById("b").onclick=function(){ans("b")};var b=document.getElementById("back");if(b)b.onclick=back;window.scrollTo(0,0)}
-function ans(k){if(st.phase==="core"){st.a[st.i]=k;st.i++;if(st.i===68)prep();else render()}else{st.ca[st.i]=k;st.i++;if(st.i===st.cq.length)result();else render()}}
-function back(){if(st.phase==="core"){if(st.i){st.i--;render()}}else{if(st.i){st.i--;render()}else{st.phase="core";st.i=67;render()}}}
+function ans(k){if(st.phase==="core"){st.a[st.i]=k;st.i++;saveProgress();if(st.i===68)prep();else render()}else{st.ca[st.i]=k;st.i++;saveProgress();if(st.i===st.cq.length)result();else render()}}
+function back(){if(st.phase==="core"){if(st.i){st.i--;saveProgress();render()}}else{if(st.i){st.i--;saveProgress();render()}else{st.phase="core";st.i=67;saveProgress();render()}}}
 function raw(){var s={E:0,I:0,S:0,N:0,T:0,F:0,J:0,P:0};for(var i=0;i<Q.length;i++){var x=Q[i],k=st.a[i];if(k)s[k==="a"?x[3]:x[4]]++}return s}
 function wilson(k,n){var z=1.645,p=k/n,den=1+z*z/n,center=(p+z*z/(2*n))/den,half=z*Math.sqrt(p*(1-p)/n+z*z/(4*n*n))/den;return [center-half,center+half]}
 function strongEnough(a,b,n){var hi=Math.max(a,b),ci=wilson(hi,n);return ci[0]>0.5}
@@ -248,7 +253,7 @@ function result(){
    var payload=makeAnonPayload(display,forced,s);
    downloadAnonPayload(payload);
  };
- document.getElementById("restart").onclick=intro;
+ document.getElementById("restart").onclick=function(){clearProgress();intro()};
  var shareTxt=shareSummary(display,forced,s);
  document.getElementById("copy").onclick=function(){
    if(navigator.clipboard&&navigator.clipboard.writeText){
@@ -260,7 +265,7 @@ function result(){
    else if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(shareTxt).then(function(){document.getElementById("share").innerText="已複製"})}
    else{alert(shareTxt)}
  };
- window.scrollTo(0,0);
+ clearProgress();window.scrollTo(0,0);
 }
 intro();
 </script></body></html>
