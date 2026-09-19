@@ -21,6 +21,21 @@ t("22題 15:7 應為明確",strong(15,7,22));
 axes.forEach(function(ax){
  t(ax+" 有 5 題校準題",CAL[ax]&&CAL[ax].length===5,CAL[ax]?CAL[ax].length:0);
 });
+function normalizeProgress(s){
+ if(!s||!Array.isArray(s.a)||!Array.isArray(s.cq)||!Array.isArray(s.ca))return null;
+ if(s.phase==="core"&&s.i>=68){
+   if(s.cq.length){s.phase="cal";s.i=Math.min(s.ca.length,s.cq.length)}
+   else return null;
+ }
+ if(s.phase==="cal"&&s.cq.length===0)return null;
+ if(s.phase==="cal"&&s.i>s.cq.length)s.i=s.cq.length;
+ return s;
+}
+var stale={phase:"core",i:68,a:new Array(68).fill("a"),cq:[],ca:[],started:1};
+t("續答邊界狀態：舊 core=68 且無校準題應捨棄",normalizeProgress(stale)===null);
+var recover={phase:"core",i:68,a:new Array(68).fill("a"),cq:[["a","b","E","I","EI"]],ca:[],started:1};
+var rr=normalizeProgress(recover);
+t("續答邊界狀態：已有校準題應轉回 cal",rr&&rr.phase==="cal"&&rr.i===0);
 var allA={E:0,I:0,S:0,N:0,T:0,F:0,J:0,P:0};
 Q.forEach(function(x){allA[x[3]]++});
 t("全選 A 不應導致四軸全部同一人格側",!(allA.E===17&&allA.S===17&&allA.T===17&&allA.J===17),JSON.stringify(allA));
