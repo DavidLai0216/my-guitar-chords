@@ -18,7 +18,7 @@ p{font-size:16px;line-height:1.75}.muted{color:var(--muted)}
 .q{font-size:22px;font-weight:800;line-height:1.5;margin:18px 0}.back{border:0;background:transparent;color:var(--muted);padding:18px 0 0;font-size:15px}
 .note{margin-top:18px;background:#f7f8fc;border-radius:14px;padding:15px;line-height:1.65;color:#58606b}.small{font-size:13px}
 .result{font-size:56px;font-weight:900;letter-spacing:.05em;margin:4px 0 6px}
-.typeLabel{font-size:20px;font-weight:800;margin:0 0 10px}.sectionTitle{font-size:18px;font-weight:900;margin:26px 0 10px}.miniGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.mini{background:#f7f8fc;border-radius:13px;padding:13px;line-height:1.55}.mini b{display:block;margin-bottom:4px}.detailGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.detail{background:#fff;border:1px solid var(--line);border-radius:13px;padding:14px;line-height:1.6}.detail b{display:block;margin-bottom:5px}@media(max-width:620px){.detailGrid{grid-template-columns:1fr}}.shareRow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.secondary{font:inherit;border:1px solid var(--line);background:#fff;border-radius:14px;padding:14px;font-weight:750}.axis{margin:20px 0}.axishead{display:flex;justify-content:space-between;font-weight:800;font-size:14px;margin-bottom:7px}.track{height:15px;background:#e9ecf2;border-radius:99px;overflow:hidden;display:flex}.l{height:100%;background:#4454b8}.r{height:100%;background:#bbc1ea}.conf{font-size:13px;color:var(--muted);margin-top:6px}
+.typeLabel{font-size:20px;font-weight:800;margin:0 0 10px}.sectionTitle{font-size:18px;font-weight:900;margin:26px 0 10px}.miniGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.mini{background:#f7f8fc;border-radius:13px;padding:13px;line-height:1.55}.mini b{display:block;margin-bottom:4px}.detailGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.detail{background:#fff;border:1px solid var(--line);border-radius:13px;padding:14px;line-height:1.6}.detail b{display:block;margin-bottom:5px}.resultCard{margin:18px 0;background:linear-gradient(145deg,#ffffff,#f3f5ff);border:1px solid #dde2f2;border-radius:18px;padding:18px}.resultCard .big{font-size:44px;font-weight:900;letter-spacing:.05em}.resultCard .sub{font-size:14px;color:#68707c;margin-top:3px}.resultCard .grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}.resultCard .pill{background:#fff;border:1px solid #e3e6ef;border-radius:12px;padding:10px;font-size:13px}.resultCard .pill b{display:block;font-size:16px;margin-bottom:2px}@media(max-width:620px){.detailGrid{grid-template-columns:1fr}.resultCard .grid{grid-template-columns:1fr 1fr}}.shareRow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.secondary{font:inherit;border:1px solid var(--line);background:#fff;border-radius:14px;padding:14px;font-weight:750}.axis{margin:20px 0}.axishead{display:flex;justify-content:space-between;font-weight:800;font-size:14px;margin-bottom:7px}.track{height:15px;background:#e9ecf2;border-radius:99px;overflow:hidden;display:flex}.l{height:100%;background:#4454b8}.r{height:100%;background:#bbc1ea}.conf{font-size:13px;color:var(--muted);margin-top:6px}
 @media(min-width:700px){.wrap{padding-top:30px}.card{padding:30px}.q{font-size:24px}}
 </style>
 </head>
@@ -143,6 +143,25 @@ function shareSummary(display,forced,s){
  }
  return "人格偏好測驗 "+TEST_VERSION+"\n結果："+display+(display.indexOf("X")>=0?"（參考四碼 "+forced+"）":"")+"\n"+parts.join("\n")+"\n此為自製四向度人格偏好工具，非官方 MBTI® 評量。";
 }
+function downloadResultCard(display,forced,s){
+ var defs=[["EI","E","I"],["SN","S","N"],["TF","T","F"],["JP","J","P"]],rows="";
+ for(var i=0;i<defs.length;i++){
+   var d=defs[i],lv=s[d[1]],rv=s[d[2]],sum=lv+rv,lp=Math.round(lv/sum*100),rp=100-lp;
+   rows+='<text x="70" y="'+(250+i*62)+'" font-size="24" font-family="Arial,sans-serif" fill="#1d2430">'+d[1]+' '+lp+'%   /   '+d[2]+' '+rp+'%</text>';
+ }
+ var note=display.indexOf("X")>=0?'參考四碼：'+forced:'四向度偏好結果';
+ var svg='<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="720">'+
+ '<rect width="1080" height="720" rx="36" fill="#f6f7fb"/>'+
+ '<rect x="40" y="40" width="1000" height="640" rx="28" fill="#ffffff" stroke="#dde2f2" stroke-width="2"/>'+
+ '<text x="70" y="100" font-size="24" font-family="Arial,sans-serif" fill="#4454b8">人格偏好測驗 '+TEST_VERSION+'</text>'+
+ '<text x="70" y="185" font-size="72" font-weight="700" font-family="Arial,sans-serif" fill="#1d2430">'+display+'</text>'+
+ '<text x="300" y="180" font-size="24" font-family="Arial,sans-serif" fill="#68707c">'+note+'</text>'+
+ rows+
+ '<text x="70" y="620" font-size="20" font-family="Arial,sans-serif" fill="#68707c">自製四向度人格偏好工具｜非官方 MBTI® 評量</text>'+
+ '</svg>';
+ var blob=new Blob([svg],{type:"image/svg+xml;charset=utf-8"}),url=URL.createObjectURL(blob),a=document.createElement("a");
+ a.href=url;a.download="personality_result_"+display+".svg";document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+}
 function result(){
  var s=finalScore(),defs=[["EI","E","I"],["SN","S","N"],["TF","T","F"],["JP","J","P"]];
  var forced="",display="",rows="",near=[],chosen=[];
@@ -206,17 +225,25 @@ function result(){
    rows+
    '<div class="note">'+certaintyNote+'</div>'+
    qualityNote+
-   '<div class="sectionTitle">你的四個偏好怎麼看</div>'+
+   '<div class="resultCard"><div class="big">'+display+'</div><div class="sub">'+typeLabel+'</div><div class="grid">'+
+   '<div class="pill"><b>'+chosen[0]+'</b>'+AXISINFO[chosen[0]][1]+'</div>'+
+   '<div class="pill"><b>'+chosen[1]+'</b>'+AXISINFO[chosen[1]][1]+'</div>'+
+   '<div class="pill"><b>'+chosen[2]+'</b>'+AXISINFO[chosen[2]][1]+'</div>'+
+   '<div class="pill"><b>'+chosen[3]+'</b>'+AXISINFO[chosen[3]][1]+'</div>'+
+ '</div></div>'+
+ '<div class="sectionTitle">你的四個偏好怎麼看</div>'+
    '<div class="miniGrid">'+cards+'</div>'+
    (display.indexOf("X")>=0?xInterpret(display,forced):'')+
    '<div class="sectionTitle">可能的優勢與提醒</div>'+
    profileBlock+
    validationBlock+
    '<div class="shareRow"><button class="secondary" id="copy">複製結果</button><button class="secondary" id="share">分享結果</button></div>'+
-   '<div class="shareRow"><button class="secondary" id="research">匯出匿名研究資料</button><button class="secondary" id="restart">重新測驗</button></div>'+
+   '<div class="shareRow"><button class="secondary" id="card">下載結果卡</button><button class="secondary" id="research">匯出匿名研究資料</button></div>'+
+   '<div class="shareRow" style="grid-template-columns:1fr"><button class="secondary" id="restart">重新測驗</button></div>'+
    
    '<div class="note small"><a href="qa.html" style="color:#4454b8">查看測驗設計與壓力測試說明</a>　｜　<a href="analyzer.html" style="color:#4454b8">研究資料分析器</a></div>'+
    '</section>';
+ document.getElementById("card").onclick=function(){downloadResultCard(display,forced,s)};
  document.getElementById("research").onclick=function(){
    var payload=makeAnonPayload(display,forced,s);
    downloadAnonPayload(payload);
