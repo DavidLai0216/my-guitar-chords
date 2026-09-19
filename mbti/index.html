@@ -80,7 +80,17 @@ var app=document.getElementById("app");
 var st={phase:"intro",i:0,a:[],cq:[],ca:[],started:0};
 var STORAGE_KEY="mbti_pref_progress_v1";
 function saveProgress(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(st))}catch(e){}}
-function loadProgress(){try{var x=localStorage.getItem(STORAGE_KEY);if(!x)return null;var s=JSON.parse(x);if(!s||!s.phase)return null;return s}catch(e){return null}}
+function normalizeProgress(s){
+ if(!s||!Array.isArray(s.a)||!Array.isArray(s.cq)||!Array.isArray(s.ca))return null;
+ if(s.phase==="core"&&s.i>=68){
+   if(s.cq.length){s.phase="cal";s.i=Math.min(s.ca.length,s.cq.length)}
+   else return null;
+ }
+ if(s.phase==="cal"&&s.cq.length===0)return null;
+ if(s.phase==="cal"&&s.i>s.cq.length)s.i=s.cq.length;
+ return s;
+}
+function loadProgress(){try{var x=localStorage.getItem(STORAGE_KEY);if(!x)return null;var s=normalizeProgress(JSON.parse(x));if(!s){localStorage.removeItem(STORAGE_KEY);return null}return s}catch(e){return null}}
 function clearProgress(){try{localStorage.removeItem(STORAGE_KEY)}catch(e){}}
 function hasResume(){var s=loadProgress();return !!(s&&s.a&&s.a.length>0&&s.phase!=="intro")}
 var lab={EI:["E 外向","I 內向"],SN:["S 實感","N 直覺"],TF:["T 思考","F 情感"],JP:["J 判斷","P 感知"]};
@@ -92,7 +102,7 @@ function back(){if(st.phase==="core"){if(st.i){st.i--;saveProgress();render()}}e
 function raw(){var s={E:0,I:0,S:0,N:0,T:0,F:0,J:0,P:0};for(var i=0;i<Q.length;i++){var x=Q[i],k=st.a[i];if(k)s[k==="a"?x[3]:x[4]]++}return s}
 function wilson(k,n){var z=1.645,p=k/n,den=1+z*z/n,center=(p+z*z/(2*n))/den,half=z*Math.sqrt(p*(1-p)/n+z*z/(4*n*n))/den;return [center-half,center+half]}
 function strongEnough(a,b,n){var hi=Math.max(a,b),ci=wilson(hi,n);return ci[0]>0.5}
-function prep(){var s=raw(),axes=[["EI","E","I"],["SN","S","N"],["TF","T","F"],["JP","J","P"]],need=[];for(var i=0;i<axes.length;i++){var d=axes[i],a=s[d[1]],b=s[d[2]];if(!strongEnough(a,b,17))need.push([d[0],Math.abs(a-b)])}need.sort(function(a,b){return a[1]-b[1]});st.cq=[];var use=need.slice(0,2);for(var u=0;u<use.length;u++){var ax=use[u][0];for(var j=0;j<5;j++){var z=CAL[ax][j];st.cq.push([z[0],z[1],z[2],z[3],ax])}}if(st.cq.length===0){result();return}st.phase="cal";st.i=0;render()}
+function prep(){var s=raw(),axes=[["EI","E","I"],["SN","S","N"],["TF","T","F"],["JP","J","P"]],need=[];for(var i=0;i<axes.length;i++){var d=axes[i],a=s[d[1]],b=s[d[2]];if(!strongEnough(a,b,17))need.push([d[0],Math.abs(a-b)])}need.sort(function(a,b){return a[1]-b[1]});st.cq=[];var use=need.slice(0,2);for(var u=0;u<use.length;u++){var ax=use[u][0];for(var j=0;j<5;j++){var z=CAL[ax][j];st.cq.push([z[0],z[1],z[2],z[3],ax])}}if(st.cq.length===0){result();return}st.phase="cal";st.i=0;saveProgress();render()}
 function finalScore(){var s=raw();for(var i=0;i<st.cq.length;i++){var x=st.cq[i],k=st.ca[i];if(k)s[k==="a"?x[2]:x[3]]+=.5}return s}
 function cf(d){return d<=1.5?"接近中線":d<=4.5?"中度傾向":"明顯傾向"}
 function responseQuality(){
