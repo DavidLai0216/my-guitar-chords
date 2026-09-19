@@ -5,20 +5,21 @@ var Q=[["參加一個幾乎都不認識人的聚會時，你通常會","主動�
 function wilson(k,n){var z=1.645,p=k/n,den=1+z*z/n,center=(p+z*z/(2*n))/den,half=z*Math.sqrt(p*(1-p)/n+z*z/(4*n*n))/den;return [center-half,center+half]}
 function strong(a,b,n){return wilson(Math.max(a,b),n)[0]>.5}
 function classifyCounts(c){var defs=[["EI","E","I"],["SN","S","N"],["TF","T","F"],["JP","J","P"]],d="",forced="";defs.forEach(function(x){var a=c[x[1]]||0,b=c[x[2]]||0,ch=a>=b?x[1]:x[2];forced+=ch;d+=strong(a,b,a+b)?ch:"X"});return {display:d,forced:forced}}
-function simulate(type,p,runs){
- var defs=[["E","I"],["S","N"],["T","F"],["J","P"]],correct=0,exact=0,axisHits=[0,0,0,0];
+function rng(seed){var x=seed>>>0;return function(){x=(1664525*x+1013904223)>>>0;return x/4294967296}}
+function simulate(type,p,runs,seed){
+ var rand=rng(seed),defs=[["E","I"],["S","N"],["T","F"],["J","P"]],correct=0,exact=0,axisHits=[0,0,0,0];
  for(var r=0;r<runs;r++){
    var c={E:0,I:0,S:0,N:0,T:0,F:0,J:0,P:0};
-   defs.forEach(function(pair,ax){var target=type[ax];for(var i=0;i<17;i++){var hit=Math.random()<p;var side=hit?target:(target===pair[0]?pair[1]:pair[0]);c[side]++}});
+   defs.forEach(function(pair,ax){var target=type[ax];for(var i=0;i<17;i++){var hit=rand()<p;var side=hit?target:(target===pair[0]?pair[1]:pair[0]);c[side]++}});
    var cl=classifyCounts(c); if(cl.forced===type) correct++; if(cl.display===type) exact++;
    for(var a=0;a<4;a++)if(cl.forced[a]===type[a])axisHits[a]++;
  }
  return {forced:correct/runs,clear:exact/runs,axis:axisHits.map(function(x){return x/runs})};
 }
 var types=[];["I","E"].forEach(function(a){["S","N"].forEach(function(b){["T","F"].forEach(function(c){["J","P"].forEach(function(d){types.push(a+b+c+d)})})})});
-var ps=[.55,.60,.65,.70],runs=4000,rows="",fails=0;
-ps.forEach(function(p){types.forEach(function(t){var s=simulate(t,p,runs);var bias=Math.max.apply(null,s.axis)-Math.min.apply(null,s.axis);var ok=bias<.035;if(!ok)fails++;rows+='<tr><td>'+t+'</td><td>'+Math.round(p*100)+':'+Math.round((1-p)*100)+'</td><td>'+Math.round(s.forced*1000)/10+'%</td><td>'+Math.round(s.clear*1000)/10+'%</td><td>'+s.axis.map(function(x){return Math.round(x*1000)/10+"%"}).join(" / ")+'</td><td class="'+(ok?"pass":"fail")+'">'+(ok?"PASS":"CHECK")+'</td></tr>'})});
-var html='<div class="box"><div class="summary">'+(fails?"有 "+fails+" 組需檢查":"全部通過偏向檢查")+'</div><p>每種型 × 每個偏好強度各 '+runs+' 次模擬。PASS 條件：四軸正確率最大差異 < 3.5 個百分點。</p></div>'+
+var ps=[.55,.60,.65,.70],runs=4000,rows="",fails=0,seedBase=20260919;
+ps.forEach(function(p,pi){types.forEach(function(t,ti){var s=simulate(t,p,runs,seedBase+pi*100+ti);var bias=Math.max.apply(null,s.axis)-Math.min.apply(null,s.axis);var ok=bias<.035;if(!ok)fails++;rows+='<tr><td>'+t+'</td><td>'+Math.round(p*100)+':'+Math.round((1-p)*100)+'</td><td>'+Math.round(s.forced*1000)/10+'%</td><td>'+Math.round(s.clear*1000)/10+'%</td><td>'+s.axis.map(function(x){return Math.round(x*1000)/10+"%"}).join(" / ")+'</td><td class="'+(ok?"pass":"fail")+'">'+(ok?"PASS":"CHECK")+'</td></tr>'})});
+var html='<div class="box"><div class="summary">'+(fails?"有 "+fails+" 組需檢查":"全部通過偏向檢查")+'</div><p>每種型 × 每個偏好強度各 '+runs+' 次模擬；固定亂數種子 20260919，結果可重現。PASS 條件：四軸正確率最大差異 < 3.5 個百分點。</p></div>'+
 '<table><thead><tr><th>型別</th><th>真實偏好</th><th>強制四碼正確</th><th>四碼皆明確</th><th>E/I・S/N・T/F・J/P 正確</th><th>偏向</th></tr></thead><tbody>'+rows+'</tbody></table>';
 document.getElementById("out").innerHTML=html;
 </script></body></html>
