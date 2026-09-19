@@ -18,7 +18,7 @@ p{font-size:16px;line-height:1.75}.muted{color:var(--muted)}
 .q{font-size:22px;font-weight:800;line-height:1.5;margin:18px 0}.back{border:0;background:transparent;color:var(--muted);padding:18px 0 0;font-size:15px}
 .note{margin-top:18px;background:#f7f8fc;border-radius:14px;padding:15px;line-height:1.65;color:#58606b}.small{font-size:13px}
 .result{font-size:56px;font-weight:900;letter-spacing:.05em;margin:4px 0 6px}
-.typeLabel{font-size:20px;font-weight:800;margin:0 0 10px}.sectionTitle{font-size:18px;font-weight:900;margin:26px 0 10px}.miniGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.mini{background:#f7f8fc;border-radius:13px;padding:13px;line-height:1.55}.mini b{display:block;margin-bottom:4px}.shareRow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.secondary{font:inherit;border:1px solid var(--line);background:#fff;border-radius:14px;padding:14px;font-weight:750}.axis{margin:20px 0}.axishead{display:flex;justify-content:space-between;font-weight:800;font-size:14px;margin-bottom:7px}.track{height:15px;background:#e9ecf2;border-radius:99px;overflow:hidden;display:flex}.l{height:100%;background:#4454b8}.r{height:100%;background:#bbc1ea}.conf{font-size:13px;color:var(--muted);margin-top:6px}
+.typeLabel{font-size:20px;font-weight:800;margin:0 0 10px}.sectionTitle{font-size:18px;font-weight:900;margin:26px 0 10px}.miniGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.mini{background:#f7f8fc;border-radius:13px;padding:13px;line-height:1.55}.mini b{display:block;margin-bottom:4px}.detailGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.detail{background:#fff;border:1px solid var(--line);border-radius:13px;padding:14px;line-height:1.6}.detail b{display:block;margin-bottom:5px}@media(max-width:620px){.detailGrid{grid-template-columns:1fr}}.shareRow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.secondary{font:inherit;border:1px solid var(--line);background:#fff;border-radius:14px;padding:14px;font-weight:750}.axis{margin:20px 0}.axishead{display:flex;justify-content:space-between;font-weight:800;font-size:14px;margin-bottom:7px}.track{height:15px;background:#e9ecf2;border-radius:99px;overflow:hidden;display:flex}.l{height:100%;background:#4454b8}.r{height:100%;background:#bbc1ea}.conf{font-size:13px;color:var(--muted);margin-top:6px}
 @media(min-width:700px){.wrap{padding-top:30px}.card{padding:30px}.q{font-size:24px}}
 </style>
 </head>
@@ -45,6 +45,25 @@ ESTJ:["結構型推進者","重視效率、責任、秩序與落地","可能在�
 ESFJ:["關係型組織者","善於協調合作、照顧群體運作","可能過度承擔他人期待"],
 ENFJ:["整合型帶領者","擅長理解人、形成共識並推動方向","可能把太多責任放在自己身上"],
 ENTJ:["策略型推進者","擅長定義目標、整合資源與推動決策","可能在追求速度與成果時低估不同人的調適節奏"]
+};
+
+var TYPEDETAIL={
+ISTJ:{work:"偏好清楚責任、標準流程與可預期節奏；適合把複雜工作整理成穩定制度。",decision:"先確認事實、規則與風險，再做出可執行的決定。",stress:"壓力大時可能更依賴既有方法，對臨時變動較不耐。",comm:"希望資訊具體、直接、有前後脈絡。",team:"合作時可主動說明你的判準，也留空間給不同做法。"},
+ISFJ:{work:"重視穩定、細節與實際照顧，常是團隊可靠的支持者。",decision:"會同時考慮現況、經驗與對人的影響。",stress:"可能默默承擔太多，延後表達自己的負荷與不同意見。",comm:"偏好尊重、具體、帶有情境脈絡的溝通。",team:"記得把自己的需求也放進團隊決策。"},
+INFJ:{work:"擅長從人的需求與長期意義整合方向，重視一致性。",decision:"會把價值、長期影響與人際脈絡一起放進判斷。",stress:"可能過度內耗，反覆檢查是否符合內在標準。",comm:"喜歡有深度、能談動機與意義的溝通。",team:"把抽象洞察轉成明確行動與期限，會更容易被團隊採用。"},
+INTJ:{work:"善於建立架構、長期策略與改善系統。",decision:"先形成模型與假設，再用資料與邏輯驗證。",stress:"可能過度獨立處理，低估共識形成需要的時間。",comm:"偏好精準、聚焦、直接進入核心問題。",team:"提早說明你的推理過程，可降低他人覺得你跳太快的落差。"},
+ISTP:{work:"擅長現場解題、拆解機制與快速排除障礙。",decision:"依眼前資訊與實際效果快速調整。",stress:"可能切斷不必要互動，只想直接處理問題。",comm:"偏好簡短、具體、不要繞圈。",team:"重大專案仍要補上長期節點與交接資訊。"},
+ISFP:{work:"重視真實感受、彈性與當下品質，通常對環境變化敏銳。",decision:"依實際情境與個人價值做判斷。",stress:"可能避免衝突太久，直到壓力累積。",comm:"喜歡自然、不壓迫、尊重個體差異的方式。",team:"有不同意見時提早說，通常比最後一次爆發更有效。"},
+INFP:{work:"重視意義、價值與可能性，適合需要創意與同理的工作。",decision:"會問這個選擇是否符合內在價值與長期意義。",stress:"可能因選項太多或理想標準太高而難以收斂。",comm:"重視真誠、尊重與完整表達脈絡。",team:"把理想轉成可執行的小步驟，可提高影響力。"},
+INTP:{work:"善於建立模型、拆解問題與找出邏輯漏洞。",decision:"偏好先釐清定義與因果，再選方案。",stress:"可能持續分析、延後拍板，或對低品質論證失去耐性。",comm:"偏好概念清楚、允許辯證、不要過度情緒化。",team:"設定決策截止點，可避免無限延伸分析。"},
+ESTP:{work:"擅長即時應變、談判、行動與抓現場機會。",decision:"重視當下資訊、速度與可見效果。",stress:"可能為了快速解決而忽略長期代價。",comm:"偏好直接、快速、可以立刻行動。",team:"重要決策多問一次『三個月後會怎樣』，可平衡短期優勢。"},
+ESFP:{work:"擅長互動、帶動氣氛與即時回應需求。",decision:"重視實際感受、人的反應與眼前效果。",stress:"可能不喜歡被長時間限制或延後回饋。",comm:"偏好有互動感、有人味、具體的溝通。",team:"把重要承諾記錄下來，能補強執行穩定性。"},
+ENFP:{work:"擅長發現新方向、連結人與點子、啟動改變。",decision:"先看可能性與價值，再逐步收斂。",stress:"可能同時開太多戰線，注意力被新機會帶走。",comm:"喜歡開放、互動、能延伸想法的對話。",team:"設定少數關鍵優先順序，能讓創意更容易落地。"},
+ENTP:{work:"擅長挑戰假設、設計替代方案與解複雜問題。",decision:"會先探索不同可能，再用邏輯比較。",stress:"可能持續推翻既有方案，讓團隊覺得沒有終點。",comm:"喜歡辯證、快速交換觀點與測試想法。",team:"清楚說明何時停止探索、進入執行，合作會更順。"},
+ESTJ:{work:"擅長建立秩序、明確分工、推進目標與追蹤成果。",decision:"偏好用事實、標準與效率快速收斂。",stress:"可能更強化控制與要求，降低他人調整空間。",comm:"偏好直接、明確、有責任歸屬與期限。",team:"在要求結果前先問一次他人的限制與資訊，通常能降低阻力。"},
+ESFJ:{work:"擅長協調人際、維持團隊運作與照顧實際需求。",decision:"會考慮團隊共識、關係與已知經驗。",stress:"可能太在意他人的期待，承擔超出負荷。",comm:"偏好有禮、具體、回應明確。",team:"重大決策要保留不同聲音，避免只追求表面一致。"},
+ENFJ:{work:"擅長形成共識、帶動人、建立共同方向。",decision:"重視長期意義與人的成長，也會主動整合不同觀點。",stress:"可能過度承擔團隊情緒與責任。",comm:"偏好有脈絡、有回應、能理解彼此立場的溝通。",team:"別把所有人的滿意都當成自己的責任。"},
+ENTJ:{work:"擅長定義目標、配置資源、建立策略並推動落地。",decision:"先抓核心目標與因果，再快速比較方案與資源效益。",stress:"可能加快速度、提高標準，低估團隊的調適節奏。",comm:"偏好直接、聚焦、能快速進入決策核心。",team:"在拍板前刻意問一次『還有什麼我沒看到？』，通常能提高決策品質。"}
 };
 var AXISINFO={
 E:["外向 E","透過互動、對話與外在刺激形成能量與想法"],
@@ -112,7 +131,7 @@ function downloadAnonPayload(payload){
 function result(){var s=finalScore(),defs=[["EI","E","I"],["SN","S","N"],["TF","T","F"],["JP","J","P"]],forced="",display="",rows="",near=[],chosen=[];for(var i=0;i<defs.length;i++){var d=defs[i],ax=d[0],l=d[1],r=d[2],lv=s[l],rv=s[r],calN=0;for(var q=0;q<st.cq.length;q++)if(st.cq[q][4]===ax)calN++;var n=17+calN,lp=Math.round(lv/(lv+rv)*100),rp=100-lp,ch=lv>rv?l:r,isNear=!strongEnough(lv,rv,n);forced+=ch;display+=isNear?"X":ch;chosen.push(ch);if(isNear)near.push(ax);var hi=Math.max(lv,rv),ci=wilson(hi,n),loCI=Math.round(ci[0]*100),hiCI=Math.round(ci[1]*100);rows+='<div class="axis"><div class="axishead"><span>'+lab[ax][0]+' '+lp+'%</span><span>'+rp+'% '+lab[ax][1]+'</span></div><div class="track"><div class="l" style="width:'+lp+'%"></div><div class="r" style="width:'+rp+'%"></div></div><div class="conf">'+(isNear?"90% 區間仍跨 50%；本次略偏 "+ch:ch+"：90% 區間約 "+loCI+"–"+hiCI+"%，未跨中線")+'</div></div>'}
 var meta=TYPEMETA[forced],cards="";for(var j=0;j<chosen.length;j++){var z=AXISINFO[chosen[j]];cards+='<div class="mini"><b>'+z[0]+'</b>'+z[1]+'</div>'}
 var rq=responseQuality(),qualityNote=rq.issues.length?'<div class="note"><b>作答品質提醒</b><br>'+rq.issues.join("；")+'。這不會自動改變分數，但建議把結果視為較低信心的參考。</div>':'';
-app.innerHTML='<section class="card"><div class="eyebrow">你的四向度偏好</div><div class="result">'+display+'</div><div class="typeLabel">'+(display.indexOf("X")>=0?"不確定向度以 X 標示｜參考四碼 "+forced:meta[0])+'</div><p>'+(display.indexOf("X")>=0?'至少一個向度目前仍缺乏足夠一致的題目支持，因此主結果不硬判；下面仍提供本次略高一側的四碼作為參考。':esc(DESC[forced]))+'</p>'+rows+'<div class="note">'+(near.length?'X 代表目前題目證據不足，不代表你沒有性格傾向。百分比是本次作答偏好指數，不是人格機率。':'四個向度都有較一致的題目支持。百分比是本次作答偏好指數，不是人格機率。')+'</div>'+qualityNote+'<div class="sectionTitle">你的四個偏好怎麼看</div><div class="miniGrid">'+cards+'</div><div class="sectionTitle">可能的優勢與提醒</div><div class="mini"><b>常見優勢</b>'+meta[1]+'</div><div class="mini" style="margin-top:10px"><b>可留意</b>'+meta[2]+'</div><div class="sectionTitle">匿名交叉驗證（選填）</div>
+app.innerHTML='<section class="card"><div class="eyebrow">你的四向度偏好</div><div class="result">'+display+'</div><div class="typeLabel">'+(display.indexOf("X")>=0?"不確定向度以 X 標示｜參考四碼 "+forced:meta[0])+'</div><p>'+(display.indexOf("X")>=0?'至少一個向度目前仍缺乏足夠一致的題目支持，因此主結果不硬判；下面仍提供本次略高一側的四碼作為參考。':esc(DESC[forced]))+'</p>'+rows+'<div class="note">'+(near.length?'X 代表目前題目證據不足，不代表你沒有性格傾向。百分比是本次作答偏好指數，不是人格機率。':'四個向度都有較一致的題目支持。百分比是本次作答偏好指數，不是人格機率。')+'</div>'+qualityNote+'<div class="sectionTitle">你的四個偏好怎麼看</div><div class="miniGrid">'+cards+'</div><div class="sectionTitle">可能的優勢與提醒</div><div class="mini"><b>常見優勢</b>'+meta[1]+'</div><div class="mini" style="margin-top:10px"><b>可留意</b>'+meta[2]+'</div>'+(display.indexOf("X")>=0?'':'<div class="sectionTitle">工作與互動解讀</div><div class="detailGrid"><div class="detail"><b>工作風格</b>'+TYPEDETAIL[forced].work+'</div><div class="detail"><b>決策模式</b>'+TYPEDETAIL[forced].decision+'</div><div class="detail"><b>壓力下常見反應</b>'+TYPEDETAIL[forced].stress+'</div><div class="detail"><b>溝通偏好</b>'+TYPEDETAIL[forced].comm+'</div><div class="detail"><b>合作提醒</b>'+TYPEDETAIL[forced].team+'</div></div>')<div class="sectionTitle">匿名交叉驗證（選填）</div>
 <div class="mini"><b>如果你過去曾多次得到相對穩定的四碼結果，可以選填。</b>
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
 <select id="priorType" class="secondary" style="width:100%">
