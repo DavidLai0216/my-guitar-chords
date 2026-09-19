@@ -60,7 +60,7 @@ var app=document.getElementById("app");
 var st={phase:"intro",i:0,a:[],cq:[],ca:[],started:0};
 var lab={EI:["E 外向","I 內向"],SN:["S 實感","N 直覺"],TF:["T 思考","F 情感"],JP:["J 判斷","P 感知"]};
 function esc(s){return String(s).replace(/[&<>"]/g,function(m){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]})}
-function intro(){app.innerHTML='<section class="card"><div class="eyebrow">68 題核心題＋必要時校準題 · 約 6–9 分鐘</div><h1>四向度人格偏好測驗</h1><p>用日常情境觀察你在 <b>E/I、S/N、T/F、J/P</b> 四個向度上的自然偏好。</p><p class="muted">前 68 題為核心題；若某個向度的核心支持度不足，系統會自動針對最不確定的向度追加 5 題校準。請選「比較像平常的你」，不是「理想中的你」。A/B 位置已交錯安排，請不要依按鍵位置作答。</p><button class="primary" id="start">開始測驗</button><div class="note small">本測驗為自製的四向度人格偏好工具，並非 The Myers-Briggs Company 的官方 MBTI® 評量；適合自我探索，不宜作為人事甄選、醫療或心理診斷依據。</div></section>';document.getElementById("start").onclick=function(){st={phase:"core",i:0,a:[],cq:[],ca:[],started:Date.now()};render()}}
+function intro(){app.innerHTML='<section class="card"><div class="eyebrow">68 題核心題＋必要時校準題 · 約 6–9 分鐘</div><h1>四向度人格偏好測驗</h1><p>用日常情境觀察你在 <b>E/I、S/N、T/F、J/P</b> 四個向度上的自然偏好。</p><p class="muted">前 68 題為核心題；若某個向度的核心支持度不足，系統會自動針對最不確定的向度追加 5 題校準。請選「比較像平常的你」，不是「理想中的你」。A/B 位置已交錯安排，請不要依按鍵位置作答。</p><button class="primary" id="start">開始測驗</button><div class="note small">本測驗為自製的四向度人格偏好工具，並非 The Myers-Briggs Company 的官方 MBTI® 評量；適合自我探索，不宜作為人事甄選、醫療或心理診斷依據。網站目前不會自動上傳你的作答資料。</div></section>';document.getElementById("start").onclick=function(){st={phase:"core",i:0,a:[],cq:[],ca:[],started:Date.now()};render()}}
 function render(){var c=st.phase==="cal",n=c?68+st.i:st.i,x=c?st.cq[st.i]:Q[st.i],total=c?68+st.cq.length:68;app.innerHTML='<section class="card"><div class="top"><div class="progress"><div class="bar" style="width:'+(n/total*100)+'%"></div></div><div class="count">'+(n+1)+' / '+total+'</div></div><div class="eyebrow">'+(c?"校準題":"情境題")+'</div><div class="q">'+esc(c?"校準題：哪一個描述更接近平常的你？":x[0])+'</div><div class="choices"><button class="choice" id="a">A　'+esc(c?x[0]:x[1])+'</button><button class="choice" id="b">B　'+esc(c?x[1]:x[2])+'</button></div>'+(n?'<button class="back" id="back">← 上一題</button>':'')+'</section>';document.getElementById("a").onclick=function(){ans("a")};document.getElementById("b").onclick=function(){ans("b")};var b=document.getElementById("back");if(b)b.onclick=back;window.scrollTo(0,0)}
 function ans(k){if(st.phase==="core"){st.a[st.i]=k;st.i++;if(st.i===68)prep();else render()}else{st.ca[st.i]=k;st.i++;if(st.i===st.cq.length)result();else render()}}
 function back(){if(st.phase==="core"){if(st.i){st.i--;render()}}else{if(st.i){st.i--;render()}else{st.phase="core";st.i=67;render()}}}
@@ -78,10 +78,38 @@ function responseQuality(){
  if(total&&Math.max(aN,bN)/total>=0.85)issues.push("A/B 按鍵選擇高度集中");
  return {elapsed:elapsed,a:aN,b:bN,issues:issues};
 }
+function makeAnonPayload(display,forced,scores){
+ var rq=responseQuality(), axes={};
+ var defs=[["EI","E","I"],["SN","S","N"],["TF","T","F"],["JP","J","P"]];
+ for(var i=0;i<defs.length;i++){
+   var d=defs[i],l=d[1],r=d[2],lv=scores[l],rv=scores[r],sum=lv+rv;
+   axes[d[0]]={left:l,right:r,left_pct:Math.round(lv/sum*100),right_pct:Math.round(rv/sum*100)};
+ }
+ var ans=st.a.concat(st.ca).map(function(x){return x==="a"?"A":"B"}).join("");
+ return {
+   schema_version:"mbti-research-v1",
+   test_version:"2026-09-v1",
+   created_date:new Date().toISOString().slice(0,10),
+   result_display:display,
+   reference_type:forced,
+   axes:axes,
+   answer_string:ans,
+   core_answer_count:st.a.length,
+   calibration_answer_count:st.ca.length,
+   elapsed_seconds:rq.elapsed,
+   response_quality_flags:rq.issues
+ };
+}
+function downloadAnonPayload(payload){
+ var blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
+ var url=URL.createObjectURL(blob),a=document.createElement("a");
+ a.href=url;a.download="anonymous_mbti_research_"+Date.now()+".json";
+ document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+}
 function result(){var s=finalScore(),defs=[["EI","E","I"],["SN","S","N"],["TF","T","F"],["JP","J","P"]],forced="",display="",rows="",near=[],chosen=[];for(var i=0;i<defs.length;i++){var d=defs[i],ax=d[0],l=d[1],r=d[2],lv=s[l],rv=s[r],calN=0;for(var q=0;q<st.cq.length;q++)if(st.cq[q][4]===ax)calN++;var n=17+calN,lp=Math.round(lv/(lv+rv)*100),rp=100-lp,ch=lv>rv?l:r,isNear=!strongEnough(lv,rv,n);forced+=ch;display+=isNear?"X":ch;chosen.push(ch);if(isNear)near.push(ax);var hi=Math.max(lv,rv),ci=wilson(hi,n),loCI=Math.round(ci[0]*100),hiCI=Math.round(ci[1]*100);rows+='<div class="axis"><div class="axishead"><span>'+lab[ax][0]+' '+lp+'%</span><span>'+rp+'% '+lab[ax][1]+'</span></div><div class="track"><div class="l" style="width:'+lp+'%"></div><div class="r" style="width:'+rp+'%"></div></div><div class="conf">'+(isNear?"90% 區間仍跨 50%；本次略偏 "+ch:ch+"：90% 區間約 "+loCI+"–"+hiCI+"%，未跨中線")+'</div></div>'}
 var meta=TYPEMETA[forced],cards="";for(var j=0;j<chosen.length;j++){var z=AXISINFO[chosen[j]];cards+='<div class="mini"><b>'+z[0]+'</b>'+z[1]+'</div>'}
 var rq=responseQuality(),qualityNote=rq.issues.length?'<div class="note"><b>作答品質提醒</b><br>'+rq.issues.join("；")+'。這不會自動改變分數，但建議把結果視為較低信心的參考。</div>':'';
-app.innerHTML='<section class="card"><div class="eyebrow">你的四向度偏好</div><div class="result">'+display+'</div><div class="typeLabel">'+(display.indexOf("X")>=0?"不確定向度以 X 標示｜參考四碼 "+forced:meta[0])+'</div><p>'+(display.indexOf("X")>=0?'至少一個向度目前仍缺乏足夠一致的題目支持，因此主結果不硬判；下面仍提供本次略高一側的四碼作為參考。':esc(DESC[forced]))+'</p>'+rows+'<div class="note">'+(near.length?'X 代表目前題目證據不足，不代表你沒有性格傾向。百分比是本次作答偏好指數，不是人格機率。':'四個向度都有較一致的題目支持。百分比是本次作答偏好指數，不是人格機率。')+'</div>'+qualityNote+'<div class="sectionTitle">你的四個偏好怎麼看</div><div class="miniGrid">'+cards+'</div><div class="sectionTitle">可能的優勢與提醒</div><div class="mini"><b>常見優勢</b>'+meta[1]+'</div><div class="mini" style="margin-top:10px"><b>可留意</b>'+meta[2]+'</div><div class="shareRow"><button class="secondary" id="copy">複製結果</button><button class="secondary" id="restart">重新測驗</button></div><div class="note small"><a href="qa.html" style="color:#4454b8">查看測驗設計與壓力測試說明</a></div></section>';
-document.getElementById("restart").onclick=intro;document.getElementById("copy").onclick=function(){var txt="我的人格偏好測驗結果："+display+(display.indexOf("X")>=0?"（參考四碼 "+forced+"）":" "+meta[0]);if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(function(){document.getElementById("copy").innerText="已複製"}).catch(function(){alert(txt)})}else{alert(txt)}};window.scrollTo(0,0)}
+app.innerHTML='<section class="card"><div class="eyebrow">你的四向度偏好</div><div class="result">'+display+'</div><div class="typeLabel">'+(display.indexOf("X")>=0?"不確定向度以 X 標示｜參考四碼 "+forced:meta[0])+'</div><p>'+(display.indexOf("X")>=0?'至少一個向度目前仍缺乏足夠一致的題目支持，因此主結果不硬判；下面仍提供本次略高一側的四碼作為參考。':esc(DESC[forced]))+'</p>'+rows+'<div class="note">'+(near.length?'X 代表目前題目證據不足，不代表你沒有性格傾向。百分比是本次作答偏好指數，不是人格機率。':'四個向度都有較一致的題目支持。百分比是本次作答偏好指數，不是人格機率。')+'</div>'+qualityNote+'<div class="sectionTitle">你的四個偏好怎麼看</div><div class="miniGrid">'+cards+'</div><div class="sectionTitle">可能的優勢與提醒</div><div class="mini"><b>常見優勢</b>'+meta[1]+'</div><div class="mini" style="margin-top:10px"><b>可留意</b>'+meta[2]+'</div><div class="shareRow"><button class="secondary" id="copy">複製結果</button><button class="secondary" id="research">匯出匿名研究資料</button></div><div class="shareRow" style="grid-template-columns:1fr"><button class="secondary" id="restart">重新測驗</button></div><div class="note small"><a href="qa.html" style="color:#4454b8">查看測驗設計與壓力測試說明</a></div></section>';
+var anonPayload=makeAnonPayload(display,forced,s);document.getElementById("research").onclick=function(){downloadAnonPayload(anonPayload)};document.getElementById("restart").onclick=intro;document.getElementById("copy").onclick=function(){var txt="我的人格偏好測驗結果："+display+(display.indexOf("X")>=0?"（參考四碼 "+forced+"）":" "+meta[0]);if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(function(){document.getElementById("copy").innerText="已複製"}).catch(function(){alert(txt)})}else{alert(txt)}};window.scrollTo(0,0)}
 intro();
 </script></body></html>
