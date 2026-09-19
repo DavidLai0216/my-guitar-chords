@@ -15,9 +15,13 @@ function esc(s){return String(s).replace(/[&<>"]/g,function(m){return {"&":"&amp
 function readFile(f){return new Promise(function(resolve,reject){var r=new FileReader();r.onload=function(){try{resolve(JSON.parse(r.result))}catch(e){reject(e)}};r.onerror=reject;r.readAsText(f)})}
 document.getElementById("run").onclick=async function(){
  var fs=[].slice.call(document.getElementById("files").files); if(!fs.length){alert("請先選 JSON 檔");return}
- var data=[];for(var i=0;i<fs.length;i++){try{var d=await readFile(fs[i]);if(d.schema_version==="mbti-research-v1"&&d.answer_string&&d.answer_string.length>=68)data.push(d)}catch(e){}}
+ var data=[];for(var i=0;i<fs.length;i++){try{var d=await readFile(fs[i]);if((d.schema_version==="mbti-research-v1"||d.schema_version==="mbti-research-v2")&&d.answer_string&&d.answer_string.length>=68)data.push(d)}catch(e){}}
  if(!data.length){document.getElementById("out").innerHTML='<div class="box">沒有讀到有效的 mbti-research-v1 資料。</div>';return}
  var times=data.map(function(d){return d.elapsed_seconds}).filter(function(x){return Number.isFinite(x)}), types={};data.forEach(function(d){types[d.reference_type]=(types[d.reference_type]||0)+1});
+ var val=data.filter(function(d){return d.prior_reference_type&&/^[EI][SN][TF][JP]$/.test(d.prior_reference_type)&&/^[EI][SN][TF][JP]$/.test(d.reference_type)});
+ var agr={EI:[0,0],SN:[0,0],TF:[0,0],JP:[0,0]};
+ val.forEach(function(d){var pairs=[["EI",0],["SN",1],["TF",2],["JP",3]];pairs.forEach(function(p){agr[p[0]][1]++;if(d.reference_type[p[1]]===d.prior_reference_type[p[1]])agr[p[0]][0]++})});
+ var agrHtml=Object.keys(agr).map(function(ax){var z=agr[ax];return '<div class="k">'+ax+'<b>'+(z[1]?Math.round(z[0]/z[1]*100)+"%":"—")+'</b><span class="muted">與過往四碼一致率</span></div>'}).join("");
  var axes=["EI","SN","TF","JP"],alphaHtml="",itemRows="";
  axes.forEach(function(ax){
   var items=META.filter(function(m){return m.axis===ax}), mat=data.map(function(d){return items.map(function(m){var a=d.answer_string[m.n-1];var side=a==="A"?m.a_side:m.b_side;return side===ax[0]?1:0})});
@@ -25,6 +29,6 @@ document.getElementById("run").onclick=async function(){
   items.forEach(function(m,ii){var A=data.map(function(d){return d.answer_string[m.n-1]==="A"?1:0}), ar=mean(A), item=mat.map(function(r){return r[ii]}), rest=mat.map(function(r){return r.reduce(function(s,x,j){return s+(j===ii?0:x)},0)}), ir=corr(item,rest), flags=[];if(ar>.8||ar<.2)flags.push("A/B 過度偏斜");if(ir!=null&&ir<.15)flags.push("低題目-總分關聯");itemRows+='<tr><td>'+m.n+'</td><td>'+m.axis+'</td><td>'+esc(m.stem)+'</td><td>'+Math.round(ar*100)+'%</td><td>'+(ir==null?"—":ir.toFixed(2))+'</td><td class="'+(flags.length?"warn":"good")+'">'+(flags.length?flags.join("；"):"暫無紅燈")+'</td></tr>'})
  });
  var typeText=Object.keys(types).sort(function(a,b){return types[b]-types[a]}).map(function(t){return t+" "+types[t]}).join("、");
- document.getElementById("out").innerHTML='<h2>樣本摘要</h2><div class="cards"><div class="k">有效樣本<b>'+data.length+'</b></div><div class="k">作答時間中位數<b>'+(times.length?Math.round(median(times)/60*10)/10+" 分":"—")+'</b></div><div class="k">不同參考型<b>'+Object.keys(types).length+'</b></div><div class="k">核心題<b>68</b></div></div><div class="box"><b>參考四碼分布：</b>'+esc(typeText)+'</div><h2>內部一致性</h2><div class="cards">'+alphaHtml+'</div><p class="muted">α 只能作為初步內部一致性指標，不等於效度。樣本太少時數字會很不穩；建議至少累積 30 份再開始觀察，100+ 再做較認真的修題判斷。</p><h2>逐題篩檢</h2><div class="tablewrap"><table><thead><tr><th>題號</th><th>軸</th><th>題幹</th><th>A比例</th><th>題目-其餘總分相關</th><th>旗標</th></tr></thead><tbody>'+itemRows+'</tbody></table></div>';
+ document.getElementById("out").innerHTML='<h2>樣本摘要</h2><div class="cards"><div class="k">有效樣本<b>'+data.length+'</b></div><div class="k">作答時間中位數<b>'+(times.length?Math.round(median(times)/60*10)/10+" 分":"—")+'</b></div><div class="k">不同參考型<b>'+Object.keys(types).length+'</b></div><div class="k">核心題<b>68</b></div></div><div class="box"><b>參考四碼分布：</b>'+esc(typeText)+'</div><h2>內部一致性</h2><div class="cards">'+alphaHtml+'</div><h2>與過往穩定四碼的交叉驗證</h2><div class="cards">'+agrHtml+'</div><p class="muted">目前有 '+val.length+' 份資料包含選填的過往四碼。這只是收斂效度的初步參考，不代表官方 MBTI® 的等同性。</p><p class="muted">α 只能作為初步內部一致性指標，不等於效度。樣本太少時數字會很不穩；建議至少累積 30 份再開始觀察，100+ 再做較認真的修題判斷。</p><h2>逐題篩檢</h2><div class="tablewrap"><table><thead><tr><th>題號</th><th>軸</th><th>題幹</th><th>A比例</th><th>題目-其餘總分相關</th><th>旗標</th></tr></thead><tbody>'+itemRows+'</tbody></table></div>';
 }
 </script></body></html>
